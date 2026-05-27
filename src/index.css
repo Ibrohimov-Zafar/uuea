@@ -1,0 +1,257 @@
+@import 'leaflet/dist/leaflet.css';
+/* stylelint-disable */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* JiangChengJianRenHei font */
+@font-face {
+  font-family: 'JiangChengJianRenHei';
+  src: url('https://resource-static.cdn.bcebos.com/fonts/JiangChengJianRenHei.woff2') format('woff2');
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+
+    /* Navy Blue / Gold / Mystical Design System */
+    --background: 214 72% 6%;
+    --foreground: 210 30% 92%;
+
+    --card: 214 68% 9%;
+    --card-foreground: 210 30% 92%;
+
+    --popover: 214 68% 8%;
+    --popover-foreground: 210 30% 92%;
+
+    /* Primary: Gold accent */
+    --primary: 44 64% 52%;
+    --primary-foreground: 214 72% 6%;
+
+    /* Secondary: Navy light */
+    --secondary: 214 50% 14%;
+    --secondary-foreground: 210 30% 85%;
+
+    --muted: 214 45% 12%;
+    --muted-foreground: 214 20% 55%;
+
+    /* Accent: subtle blue-gray, low saturation for dark */
+    --accent: 214 35% 18%;
+    --accent-foreground: 210 30% 90%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 40% 18%;
+    --input: 214 40% 14%;
+    --ring: 44 64% 52%;
+
+    /* Custom gold tokens */
+    --gold: 44 64% 52%;
+    --gold-foreground: 214 72% 6%;
+    --gold-muted: 44 40% 35%;
+
+    /* Navy tokens */
+    --navy: 214 72% 6%;
+    --navy-light: 214 60% 11%;
+    --navy-dark: 214 80% 4%;
+
+    /* Status */
+    --success: 140 60% 40%;
+    --warning: 38 90% 50%;
+    --info: 210 80% 55%;
+
+    /* Charts */
+    --chart-1: 44 64% 52%;
+    --chart-2: 210 70% 55%;
+    --chart-3: 160 55% 42%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 30 75% 50%;
+
+    /* Sidebar */
+    --sidebar-background: 214 72% 5%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 44 64% 52%;
+    --sidebar-primary-foreground: 214 72% 6%;
+    --sidebar-accent: 214 50% 12%;
+    --sidebar-accent-foreground: 210 30% 90%;
+    --sidebar-border: 214 40% 14%;
+    --sidebar-ring: 44 64% 52%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(214, 72%, 6%) 0%, hsl(214, 60%, 11%) 50%, hsl(214, 72%, 6%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(44, 64%, 52%) 0%, hsl(38, 70%, 42%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(214, 68%, 9%) 0%, hsl(214, 55%, 12%) 100%);
+    --gradient-background: linear-gradient(180deg, hsl(214, 72%, 6%) 0%, hsl(214, 80%, 4%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(44, 64%, 52%) 0%, hsl(44, 80%, 65%) 50%, hsl(44, 64%, 42%) 100%);
+
+    /* Shadows */
+    --shadow-card: 0 4px 24px hsla(214, 72%, 3%, 0.7), 0 1px 4px hsla(214, 72%, 3%, 0.5);
+    --shadow-hover: 0 8px 32px hsla(214, 72%, 3%, 0.8), 0 2px 8px hsla(44, 64%, 52%, 0.2);
+    --shadow-gold: 0 0 24px hsla(44, 64%, 52%, 0.4), 0 0 8px hsla(44, 64%, 52%, 0.2);
+    --shadow-deep: 0 16px 48px hsla(214, 80%, 3%, 0.9);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    background-color: hsl(214, 72%, 6%);
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'JiangChengJianRenHei', 'Inter', sans-serif;
+  }
+}
+
+/* ======== Mystical Decorative Utilities ======== */
+@layer utilities {
+  /* Sacred geometry background pattern */
+  .bg-sacred-geometry {
+    background-image:
+      radial-gradient(circle at 25% 25%, hsla(44, 64%, 52%, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsla(210, 80%, 55%, 0.04) 0%, transparent 50%),
+      repeating-linear-gradient(
+        60deg,
+        transparent,
+        transparent 80px,
+        hsla(44, 64%, 52%, 0.015) 80px,
+        hsla(44, 64%, 52%, 0.015) 81px
+      ),
+      repeating-linear-gradient(
+        -60deg,
+        transparent,
+        transparent 80px,
+        hsla(44, 64%, 52%, 0.015) 80px,
+        hsla(44, 64%, 52%, 0.015) 81px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 80px,
+        hsla(44, 64%, 52%, 0.01) 80px,
+        hsla(44, 64%, 52%, 0.01) 81px
+      );
+  }
+
+  /* Gold gradient text */
+  .text-gold-gradient {
+    background: var(--gradient-gold);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Ancient border style */
+  .border-ancient {
+    border: 1px solid hsla(44, 64%, 52%, 0.3);
+    box-shadow: inset 0 1px 0 hsla(44, 64%, 52%, 0.1), 0 1px 0 hsla(44, 64%, 52%, 0.1);
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    background: hsla(214, 68%, 9%, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsla(44, 64%, 52%, 0.15);
+  }
+
+  /* Gold line decoration */
+  .gold-line-top {
+    border-top: 2px solid;
+    border-image: linear-gradient(90deg, transparent, hsl(44, 64%, 52%), transparent) 1;
+  }
+
+  /* Section divider */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsla(44, 64%, 52%, 0.5), transparent);
+  }
+
+  /* Hover glow */
+  .hover-gold-glow {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  }
+
+  .hover-gold-glow:hover {
+    box-shadow: 0 0 24px hsla(44, 64%, 52%, 0.3), 0 8px 32px hsla(214, 72%, 3%, 0.7);
+    border-color: hsla(44, 64%, 52%, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* Constellation dots */
+  .constellation-bg {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .constellation-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, hsla(44, 64%, 52%, 0.6) 1px, transparent 1px),
+      radial-gradient(circle, hsla(210, 80%, 70%, 0.4) 1px, transparent 1px);
+    background-size: 120px 120px, 80px 80px;
+    background-position: 0 0, 40px 40px;
+    pointer-events: none;
+    animation: constellation-pulse 4s ease-in-out infinite;
+  }
+
+  /* VIP Badge */
+  .vip-badge {
+    background: var(--gradient-gold);
+    color: hsl(214, 72%, 6%);
+    font-weight: 700;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Ancient card border */
+  .card-ancient {
+    position: relative;
+  }
+
+  .card-ancient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid hsla(44, 64%, 52%, 0.2);
+    border-radius: var(--radius);
+    pointer-events: none;
+  }
+
+  .card-ancient::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border: 1px solid hsla(44, 64%, 52%, 0.06);
+    border-radius: calc(var(--radius) - 2px);
+    pointer-events: none;
+  }
+}

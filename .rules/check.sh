@@ -1,0 +1,48 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+AST_GREP="$ROOT/node_modules/@ast-grep/cli/ast-grep"
+if [ ! -x "$AST_GREP" ]; then
+  echo "ast-grep not found. Run: pnpm install"
+  exit 1
+fi
+
+"$AST_GREP" scan -r .rules/SelectItem.yml
+
+"$AST_GREP" scan -r .rules/contrast.yml
+
+"$AST_GREP" scan -r .rules/supabase-google-sso.yml
+
+"$AST_GREP" scan -r .rules/toast-hook.yml
+
+"$AST_GREP" scan -r .rules/slot-nesting.yml
+
+"$AST_GREP" scan -r .rules/require-button-interaction.yml
+
+"$AST_GREP" scan -r .rules/supabase-edge-function-get-body.yml
+
+useauth_output=$("$AST_GREP" scan -r .rules/useAuth.yml 2>/dev/null)
+
+if [ -z "$useauth_output" ]; then
+    exit 0
+fi
+
+authprovider_output=$("$AST_GREP" scan -r .rules/authProvider.yml 2>/dev/null)
+
+if [ -n "$authprovider_output" ]; then
+    exit 0
+fi
+
+echo "=== ast-grep scan -r .rules/useAuth.yml output ==="
+echo "$useauth_output"
+echo ""
+echo "=== ast-grep scan -r .rules/authProvider.yml output ==="
+echo "$authprovider_output"
+echo ""
+echo "⚠️  Issue detected:"
+echo "The code uses useAuth Hook but does not have AuthProvider component wrapping the components."
+echo "Please ensure that components using useAuth are wrapped with AuthProvider to provide proper authentication context."
+echo ""
+echo "Suggested fixes:"
+echo "1. Add AuthProvider wrapper in app.tsx or corresponding root component"
+echo "2. Ensure all components using useAuth are within AuthProvider scope"
