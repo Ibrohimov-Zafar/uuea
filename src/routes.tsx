@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminPage from './pages/AdminPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import EventPaymentSuccessPage from './pages/EventPaymentSuccessPage';
 import UnsubscribePage from './pages/UnsubscribePage';
 
 export interface RouteConfig {
@@ -42,5 +43,6 @@ export const routes: RouteConfig[] = [
   { name: "Ro'yxatdan O'tish",      path: '/royxat',        element: <RegisterPage />,      public: true },
   { name: 'Admin Panel',            path: '/admin',         element: <AdminPage />,         public: false },
   { name: "To'lov Muvaffaqiyatli",  path: '/payment-success', element: <PaymentSuccessPage />, public: true },
+  { name: "Tadbir to'lovi",         path: '/event-payment-success', element: <EventPaymentSuccessPage />, public: true },
   { name: "Obunadan Chiqish",       path: '/unsubscribe',     element: <UnsubscribePage />,    public: true },
 ];
