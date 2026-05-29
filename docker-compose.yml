@@ -1,0 +1,70 @@
+# Biznes Chamber — Docker (SQLite volume + API + frontend)
+#
+# Ishga tushirish:
+#   cp .env.docker.example .env.docker   # Stripe/JWT ni to'ldiring
+#   docker compose --env-file .env.docker up -d --build
+#
+# Demo ma'lumot:
+#   docker compose --env-file .env.docker --profile seed run --rm seed
+#
+# To'xtatish:
+#   docker compose down
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uuea-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8787}:8787"
+    environment:
+      API_PORT: "8787"
+      DB_PATH: /data/app.db
+      UPLOAD_DIR: /data/uploads
+      JWT_SECRET: ${JWT_SECRET:-dev_change_me}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+    volumes:
+      - uuea-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8787}
+    container_name: uuea-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # Demo foydalanuvchilar: admin/admin123, biznes/biznes123
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    profiles: ["seed"]
+    entrypoint: ["/app/seed"]
+    environment:
+      DB_PATH: /data/app.db
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uuea-data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  uuea-data:
+    name: uuea-sqlite-data

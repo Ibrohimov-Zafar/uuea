@@ -6,7 +6,13 @@ dist
 .env.local
 .env.*.local
 backend/.env
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+.env.docker
 !.env.example
 !backend/.env.example
+!.env.docker.example
 /workspace/.dist
 .dist
