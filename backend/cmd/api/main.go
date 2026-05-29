@@ -36,6 +36,11 @@ func main() {
 	}
 	defer conn.Close()
 	_ = seed.Run(conn)
+	if os.Getenv("SEED_DEMO") == "true" || os.Getenv("SEED_DEMO") == "1" {
+		if err := seed.Demo(conn); err != nil {
+			log.Printf("[seed] demo: %v", err)
+		}
+	}
 
 	uploadDir := cfg.UploadDir
 	if !filepath.IsAbs(uploadDir) {
@@ -55,8 +60,15 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
+	origins := []string{
+		"http://localhost:5173",
+		"http://127.0.0.1:5173",
+		"http://localhost:8080",
+		"http://127.0.0.1:8080",
+		cfg.FrontendOrigin,
+	}
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://127.0.0.1:5173", cfg.FrontendOrigin},
+		AllowedOrigins:   origins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,

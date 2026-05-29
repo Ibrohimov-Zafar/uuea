@@ -1,4 +1,4 @@
-Talablar hujjati
+ilovTalablar hujjati
 1. Ilova haqida umumiy ma'lumot
 1.1 Ilova nomi
 Chamber of Commerce Platform

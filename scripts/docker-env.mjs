@@ -47,8 +47,14 @@ if (!backendEnv) missingHint('backend/.env', 'backend/.env.example');
 
 const apiPort = backendEnv.API_PORT || rootEnv.API_PORT || '8787';
 const webPort = rootEnv.WEB_PORT || '8080';
-const viteApi =
-  rootEnv.VITE_API_URL || `http://127.0.0.1:${apiPort}`;
+
+// Docker: nginx /api proxy — brauzerda localhost/127.0.0.1 ishlamaydi
+const rawVite = (rootEnv.VITE_API_URL || '').trim();
+const isLocalApi =
+  !rawVite ||
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(rawVite);
+const viteApi = isLocalApi ? '/api' : rawVite;
+
 const frontendOrigin =
   rootEnv.FRONTEND_ORIGIN || `http://localhost:${webPort}`;
 

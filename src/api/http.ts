@@ -27,8 +27,14 @@ export function toApiError(err: unknown): Error {
   return err instanceof Error ? err : new Error("Tarmoq xatosi");
 }
 
-export const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "http://127.0.0.1:8787";
+function resolveApiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (raw) return raw;
+  if (import.meta.env.DEV) return "http://127.0.0.1:8787";
+  return "/api";
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
