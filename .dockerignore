@@ -4,7 +4,7 @@ dist
 .cursor
 .env
 .env.*
-!.env.docker.example
+.env.compose
 backend/data
 backend/.env
 *.db

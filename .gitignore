@@ -10,9 +10,8 @@ backend/data/
 *.db
 *.db-shm
 *.db-wal
-.env.docker
+.env.compose
 !.env.example
 !backend/.env.example
-!.env.docker.example
 /workspace/.dist
 .dist

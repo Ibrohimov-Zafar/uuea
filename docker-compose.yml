@@ -1,14 +1,10 @@
 # Biznes Chamber — Docker (SQLite volume + API + frontend)
 #
-# Ishga tushirish:
-#   cp .env.docker.example .env.docker   # Stripe/JWT ni to'ldiring
-#   docker compose --env-file .env.docker up -d --build
+# Env: loyiha .env (VITE_API_URL) + backend/.env (JWT, Stripe, API_PORT)
+#   pnpm docker:up    # avval .env.compose yaratadi
 #
-# Demo ma'lumot:
-#   docker compose --env-file .env.docker --profile seed run --rm seed
-#
-# To'xtatish:
-#   docker compose down
+# Demo: pnpm docker:seed
+# To'xtatish: pnpm docker:down
 
 services:
   api:
