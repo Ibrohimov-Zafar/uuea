@@ -5,7 +5,7 @@ import {
   Settings, MessageSquare, LogOut, Menu, X, ChevronRight,
   Star, CheckCircle, AlertCircle, Clock, Plus, Upload,
   User, Bell, Globe, ExternalLink, Send,
-  BadgeCheck, ShieldOff, Building, Phone, Mail, Download
+  BadgeCheck, ShieldOff, Building, Phone, Mail, Download, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,9 @@ import {
   getMyBusinessSubmissions,
   createBusinessSubmission,
   getMyOrders,
+  adminStats,
+  adminList,
+  adminListNews,
   type BusinessSubmissionRow,
   type EventRegistrationWithEvent,
   updateProfile,
@@ -59,7 +62,7 @@ const NAV_ITEMS = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, signOut, refreshProfile, isAdmin, isSuperAdmin } = useAuth();
   const { lang, setLang, t } = useLang();
   const [section, setSection] = useState<Section>('overview');
   const [membership, setMembership] = useState<Membership | null>(null);
@@ -69,6 +72,12 @@ export default function DashboardPage() {
   const [cancelling, setCancelling] = useState(false);
   const [ordersCount, setOrdersCount] = useState(0);
   const [eventsRegCount, setEventsRegCount] = useState(0);
+  const [adminSummary, setAdminSummary] = useState<{
+    counts: { profiles: number; businesses: number; events: number } | null;
+    pendingSubmissions: number;
+    pendingNews: number;
+    revenueTotal?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/kirish', { replace: true });
@@ -89,6 +98,35 @@ export default function DashboardPage() {
       setMemberLoading(false);
     })();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+    (async () => {
+      try {
+        const [stats, subs, news] = await Promise.all([
+          adminStats(),
+          adminList<Record<string, unknown>>('business_submissions', 200),
+          adminListNews(),
+        ]);
+        const counts = (stats.counts || {}) as { profiles?: number; businesses?: number; events?: number };
+        const revenueTotal = Number((stats as any).revenue_total) || 0;
+        const pendingSubmissions = (subs || []).filter(s => String((s as any).status || '') === 'pending').length;
+        const pendingNews = (news || []).filter(n => n.status === 'pending').length;
+        setAdminSummary({
+          counts: {
+            profiles: counts.profiles || 0,
+            businesses: counts.businesses || 0,
+            events: counts.events || 0,
+          },
+          pendingSubmissions,
+          pendingNews,
+          revenueTotal: isSuperAdmin ? revenueTotal : undefined,
+        });
+      } catch {
+        setAdminSummary(null);
+      }
+    })();
+  }, [user, isAdmin, isSuperAdmin]);
 
   const handleCancelMembership = async () => {
     if (!user || !membership) return;
@@ -297,6 +335,7 @@ export default function DashboardPage() {
               eventsRegCount={eventsRegCount}
               onCancelClick={() => setCancelOpen(true)}
               onNavigate={goTo}
+              adminSummary={adminSummary}
             />
           )}
           {section === 'membership' && (
@@ -335,12 +374,19 @@ export default function DashboardPage() {
 }
 
 /* ── OVERVIEW ── */
-function OverviewSection({ displayName, membership, memberLoading, ordersCount, eventsRegCount, onCancelClick, onNavigate }: {
+function OverviewSection({ displayName, membership, memberLoading, ordersCount, eventsRegCount, onCancelClick, onNavigate, adminSummary }: {
   displayName: string; membership: Membership | null; memberLoading: boolean;
   ordersCount: number; eventsRegCount: number;
   onCancelClick: () => void; onNavigate: (s: Section) => void;
+  adminSummary: {
+    counts: { profiles: number; businesses: number; events: number } | null;
+    pendingSubmissions: number;
+    pendingNews: number;
+    revenueTotal?: number;
+  } | null;
 }) {
   const { t } = useLang();
+  const { isAdmin } = useAuth();
   const planColors: Record<string, string> = {
     starter: 'text-blue-400', business: 'text-primary', corporate: 'text-purple-400', international: 'text-red-400'
   };
@@ -350,6 +396,50 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
         <h1 className="font-jiang-cheng text-foreground text-2xl font-bold">{t('welcome')}, {displayName.split(' ')[0]}!</h1>
         <p className="text-muted-foreground text-sm mt-1">Biznes Chamber boshqaruv paneli</p>
       </div>
+
+      {isAdmin && (
+        <div className="glass-card border-ancient rounded-sm p-5 card-ancient">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <div>
+                <div className="font-jiang-cheng text-foreground font-bold">Admin ko‘rinishi</div>
+                <div className="text-xs text-muted-foreground">Tezkor statistikalar va pending ishlar</div>
+              </div>
+            </div>
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="border border-primary/30 text-primary hover:bg-primary/10 rounded-sm text-xs">
+                Admin panelga o‘tish
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            {[
+              { label: "A'zolar", value: adminSummary?.counts?.profiles ?? '—' },
+              { label: 'Bizneslar', value: adminSummary?.counts?.businesses ?? '—' },
+              { label: 'Tadbirlar', value: adminSummary?.counts?.events ?? '—' },
+              ...(adminSummary?.revenueTotal != null ? [{ label: 'Daromad (USD)', value: `$${adminSummary.revenueTotal.toLocaleString()}` }] : []),
+            ].map((c) => (
+              <div key={c.label} className="bg-navy/40 border border-border/40 rounded-sm p-3">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{c.label}</div>
+                <div className="font-jiang-cheng text-foreground font-bold text-xl">{c.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            <div className="bg-navy/40 border border-border/40 rounded-sm p-3 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">Pending biznes takliflari</div>
+              <div className="font-jiang-cheng text-primary font-bold text-lg">{adminSummary?.pendingSubmissions ?? '—'}</div>
+            </div>
+            <div className="bg-navy/40 border border-border/40 rounded-sm p-3 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">Pending yangiliklar</div>
+              <div className="font-jiang-cheng text-primary font-bold text-lg">{adminSummary?.pendingNews ?? '—'}</div>
+            </div>
+          </div>
+        </div>
+      )}
       {membership?.status === 'active' && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
@@ -392,6 +482,12 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
                   className="mt-auto w-full border border-destructive/30 text-destructive hover:bg-destructive/10 rounded-sm text-xs h-8">
                   <ShieldOff className="w-3.5 h-3.5 mr-1.5" />{t('cancelMembership')}
                 </Button>
+              </div>
+            ) : isAdmin ? (
+              <div className="flex-1 flex flex-col justify-center gap-2">
+                <p className="text-muted-foreground text-sm">
+                  Admin akkaunti uchun a'zolik talab qilinmaydi.
+                </p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col gap-2">
@@ -449,7 +545,21 @@ function MembershipSection({ membership, loading, onCancelClick }: {
   membership: Membership | null; loading: boolean; onCancelClick: () => void;
 }) {
   const { t } = useLang();
+  const { isAdmin } = useAuth();
   if (loading) return <Skeleton className="h-48 bg-muted rounded-sm" />;
+  if (isAdmin && (!membership || membership.status !== 'active')) {
+    return (
+      <div className="glass-card border-ancient rounded-sm p-8 card-ancient text-center space-y-4">
+        <Star className="w-12 h-12 text-primary/30 mx-auto" />
+        <div>
+          <h3 className="font-jiang-cheng text-foreground font-bold text-lg">Admin</h3>
+          <p className="text-muted-foreground text-sm mt-1">
+            Admin akkaunti uchun a'zolik talab qilinmaydi.
+          </p>
+        </div>
+      </div>
+    );
+  }
   if (!membership || membership.status !== 'active') return (
     <div className="glass-card border-ancient rounded-sm p-8 card-ancient text-center space-y-4">
       <Star className="w-12 h-12 text-primary/30 mx-auto" />

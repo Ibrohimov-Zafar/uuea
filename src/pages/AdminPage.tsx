@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Building2, Calendar, LogOut, Menu, X,
+  Users, Building2, Calendar, LogOut, Menu, X,
+  LayoutDashboard,
   Plus, Pencil, Trash2, Search, ChevronRight, TrendingUp,
   ShieldCheck, CheckCircle2, XCircle, RefreshCw, Save,
   BarChart2, CheckCircle, AlertCircle, Clock, Download, FileSpreadsheet,
@@ -266,12 +267,10 @@ export default function AdminPage() {
     { id: 'campaigns',      label: 'Kampaniyalar',             icon: <Megaphone className="w-4 h-4" /> },
   ];
 
-  if (isSuperAdmin) {
-    navItems.push(
-      { id: 'news', label: 'Yangiliklar', icon: <Newspaper className="w-4 h-4" /> },
-      { id: 'plans', label: "A'zolik Rejalari", icon: <CreditCard className="w-4 h-4" /> },
-    );
-  }
+  // Regular admin should also be able to manage news and events.
+  navItems.push({ id: 'news', label: 'Yangiliklar', icon: <Newspaper className="w-4 h-4" /> });
+  // Only super-admin can manage membership plans / payments-related configuration.
+  if (isSuperAdmin) navItems.push({ id: 'plans', label: "A'zolik Rejalari", icon: <CreditCard className="w-4 h-4" /> });
 
   const goTo = (s: Section) => { setSection(s); setMobileOpen(false); };
 
@@ -302,10 +301,12 @@ export default function AdminPage() {
           ))}
         </nav>
         <div className="p-3 border-t border-sidebar-border space-y-1">
-          <button onClick={() => navigate('/dashboard')}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all">
-            <LayoutDashboard className="w-4 h-4" />Dashboard
-          </button>
+          {isSuperAdmin && (
+            <button onClick={() => navigate('/dashboard')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all">
+              <LayoutDashboard className="w-4 h-4" />Dashboard
+            </button>
+          )}
           <button onClick={async () => { await signOut(); navigate('/'); }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive transition-all">
             <LogOut className="w-4 h-4" />{t('logout')}
@@ -398,6 +399,7 @@ function ChartTooltip({ active, payload, label, prefix = '' }: {
 
 /* ══ DASHBOARD / CHARTS SECTION ═══════════════════════════════ */
 function DashboardSection() {
+  const { isSuperAdmin } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -441,7 +443,9 @@ function DashboardSection() {
     { label: "Jami A'zolar",   value: stats.members,    icon: <Users className="w-5 h-5" />, color: 'text-blue-400' },
     { label: 'Jami Bizneslar', value: stats.businesses, icon: <Building2 className="w-5 h-5" />, color: 'text-green-400' },
     { label: 'Jami Tadbirlar', value: stats.events,     icon: <Calendar className="w-5 h-5" />, color: 'text-yellow-400' },
-    { label: 'Daromad (USD)',  value: `$${stats.revenue.toLocaleString()}`, icon: <TrendingUp className="w-5 h-5" />, color: 'text-primary' },
+    ...(isSuperAdmin
+      ? [{ label: 'Daromad (USD)', value: `$${stats.revenue.toLocaleString()}`, icon: <TrendingUp className="w-5 h-5" />, color: 'text-primary' }]
+      : []),
   ] : [];
 
   return (
@@ -464,37 +468,39 @@ function DashboardSection() {
         }
       </div>
 
-      {/* Revenue chart */}
-      <div className="glass-card border-ancient rounded-sm p-6 card-ancient">
-        <h3 className="font-jiang-cheng text-foreground font-bold text-sm mb-6">{
-          'Oylik Daromad (USD)'
-        }</h3>
-        {loading
-          ? <Skeleton className="h-64 bg-muted rounded-sm" />
-          : revenue.length === 0
-            ? <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">Ma'lumot yo'q (to'lovlar bajarilgandan so'ng ko'rsatiladi)</div>
-            : (
-              <div className="w-full min-w-0 overflow-hidden">
-                <ResponsiveContainer width="100%" height={240}>
-                  <AreaChart data={revenue} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#d4af37" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#888' }} />
-                    <YAxis tick={{ fontSize: 11, fill: '#888' }} tickFormatter={v => `$${v}`} />
-                    <Tooltip content={<ChartTooltip prefix="$" />} />
-                    <Area type="monotone" dataKey="revenue" stroke="#d4af37" strokeWidth={2}
-                      fill="url(#revGrad)" dot={{ fill: '#d4af37', r: 3 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )
-        }
-      </div>
+      {/* Revenue chart (super-admin only) */}
+      {isSuperAdmin && (
+        <div className="glass-card border-ancient rounded-sm p-6 card-ancient">
+          <h3 className="font-jiang-cheng text-foreground font-bold text-sm mb-6">{
+            'Oylik Daromad (USD)'
+          }</h3>
+          {loading
+            ? <Skeleton className="h-64 bg-muted rounded-sm" />
+            : revenue.length === 0
+              ? <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">Ma'lumot yo'q (to'lovlar bajarilgandan so'ng ko'rsatiladi)</div>
+              : (
+                <div className="w-full min-w-0 overflow-hidden">
+                  <ResponsiveContainer width="100%" height={240}>
+                    <AreaChart data={revenue} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#d4af37" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#888' }} />
+                      <YAxis tick={{ fontSize: 11, fill: '#888' }} tickFormatter={v => `$${v}`} />
+                      <Tooltip content={<ChartTooltip prefix="$" />} />
+                      <Area type="monotone" dataKey="revenue" stroke="#d4af37" strokeWidth={2}
+                        fill="url(#revGrad)" dot={{ fill: '#d4af37', r: 3 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )
+          }
+        </div>
+      )}
 
       {/* Membership growth chart */}
       <div className="glass-card border-ancient rounded-sm p-6 card-ancient">
