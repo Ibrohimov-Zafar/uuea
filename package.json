@@ -1,6 +1,7 @@
 {
     "name": "miaoda-react-admin",
     "version": "0.0.1",
+    "packageManager": "pnpm@10.33.2",
     "type": "module",
     "scripts": {
       "dev": "vite",
@@ -13,6 +14,7 @@
       "docker:down": "docker compose down",
       "docker:seed": "node scripts/docker-env.mjs && docker compose --env-file .env.docker --profile seed run --rm seed",
       "docker:logs": "docker compose logs -f api web",
+      "docker:web": "node scripts/docker-env.mjs && docker compose --env-file .env.docker up -d --build web",
       "build": "vite build",
       "preview": "vite preview",
       "lint": "tsgo -p tsconfig.check.json; npx biome lint; .rules/check.sh;npx tailwindcss -i ./src/index.css -o /dev/null 2>&1 | grep -E '^(CssSyntaxError|Error):.*' || true;.rules/testBuild.sh"
