@@ -5,6 +5,10 @@
 #
 # Demo: pnpm docker:seed
 # To'xtatish: pnpm docker:down
+#
+# VPS: auth.docker.io 404 bo'lsa — Dockerfile lar public.ecr.aws dan tortadi.
+# Tekshirish: curl -sI https://public.ecr.aws | head -1
+#             docker pull public.ecr.aws/docker/library/alpine:3.20
 
 services:
   api:
