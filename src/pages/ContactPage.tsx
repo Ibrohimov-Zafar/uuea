@@ -5,19 +5,63 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/contexts/LangContext';
+import { SITE } from '@/config/site';
+import { createContactMessage } from '@/api/client';
+import { toast } from 'sonner';
+
+type FormState = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  website: string;
+};
+
+const emptyForm: FormState = {
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  subject: '',
+  message: '',
+  website: '',
+};
 
 export default function ContactPage() {
   const { t } = useLang();
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    if (form.website) return;
+    setLoading(true);
+    try {
+      await createContactMessage({
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || undefined,
+        subject: form.subject.trim() || undefined,
+        message: form.message.trim(),
+      });
+      setSent(true);
+      setForm(emptyForm);
+    } catch {
+      toast.error(t('contactError'));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm(f => ({ ...f, [key]: e.target.value }));
 
   return (
     <Layout>
-      {/* Hero */}
       <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
         <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
@@ -33,11 +77,9 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact content */}
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-            {/* Contact info */}
             <div className="lg:col-span-2 space-y-6">
               <div>
                 <h2 className="font-jiang-cheng text-foreground text-xl font-bold mb-2 text-balance">
@@ -50,22 +92,22 @@ export default function ContactPage() {
                   {
                     icon: <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />,
                     label: t('address'),
-                    value: "Toshkent sh., Amir Temur ko'chasi, 108\nO'zbekiston, 100000",
+                    value: t('footerAddress'),
                   },
                   {
                     icon: <Phone className="w-5 h-5 text-primary shrink-0" />,
                     label: t('phone'),
-                    value: "+998 71 200-00-00",
+                    value: `${SITE.phone}\n${SITE.phoneUz}`,
                   },
                   {
                     icon: <Mail className="w-5 h-5 text-primary shrink-0" />,
                     label: t('email'),
-                    value: "info@chamber.uz",
+                    value: SITE.email,
                   },
                   {
                     icon: <Clock className="w-5 h-5 text-primary shrink-0" />,
                     label: t('contactHours'),
-                    value: "Dushanba – Juma: 09:00 – 18:00\nShanba: 10:00 – 14:00",
+                    value: t('contactHoursValue'),
                   },
                 ].map((item) => (
                   <div key={item.label} className="glass-card border-ancient rounded-sm p-4 flex items-start gap-4 hover-gold-glow">
@@ -79,17 +121,8 @@ export default function ContactPage() {
                   </div>
                 ))}
               </div>
-
-              {/* Map placeholder */}
-              <div className="rounded-sm overflow-hidden border border-border/60 aspect-[4/3] bg-muted flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-navy/60 flex flex-col items-center justify-center gap-2">
-                  <MapPin className="w-10 h-10 text-primary opacity-60" />
-                  <span className="text-muted-foreground text-xs tracking-wider">Amir Temur ko'chasi, 108</span>
-                </div>
-              </div>
             </div>
 
-            {/* Form */}
             <div className="lg:col-span-3">
               <div className="glass-card border-ancient rounded-sm p-8 card-ancient">
                 {sent ? (
@@ -108,7 +141,7 @@ export default function ContactPage() {
                       className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm"
                       onClick={() => setSent(false)}
                     >
-                      Yangi Xabar Yuborish
+                      {t('sendAnother')}
                     </Button>
                   </div>
                 ) : (
@@ -119,33 +152,43 @@ export default function ContactPage() {
                       </h2>
                       <div className="w-12 h-0.5 bg-primary mb-5" />
                     </div>
+                    <input
+                      type="text"
+                      name="website"
+                      value={form.website}
+                      onChange={set('website')}
+                      className="hidden"
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-sm text-muted-foreground">Ism *</label>
-                        <Input required placeholder="Ismingiz" className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
+                        <label className="text-sm text-muted-foreground">{t('firstName')} *</label>
+                        <Input required value={form.first_name} onChange={set('first_name')} className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-sm text-muted-foreground">Familiya *</label>
-                        <Input required placeholder="Familiyangiz" className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
+                        <label className="text-sm text-muted-foreground">{t('lastName')} *</label>
+                        <Input required value={form.last_name} onChange={set('last_name')} className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm text-muted-foreground">Email *</label>
-                      <Input required type="email" placeholder="email@example.com" className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
+                      <label className="text-sm text-muted-foreground">{t('email')} *</label>
+                      <Input required type="email" value={form.email} onChange={set('email')} className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm text-muted-foreground">Telefon</label>
-                      <Input placeholder="+998 XX XXX-XX-XX" className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
+                      <label className="text-sm text-muted-foreground">{t('phone')}</label>
+                      <Input value={form.phone} onChange={set('phone')} className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm text-muted-foreground">Mavzu</label>
-                      <Input placeholder="Xabar mavzusi" className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
+                      <label className="text-sm text-muted-foreground">{t('subject')}</label>
+                      <Input value={form.subject} onChange={set('subject')} className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm text-muted-foreground">Xabar *</label>
+                      <label className="text-sm text-muted-foreground">{t('message')} *</label>
                       <Textarea
                         required
-                        placeholder="Xabaringizni yozing..."
+                        value={form.message}
+                        onChange={set('message')}
                         rows={5}
                         className="bg-background border-border/60 rounded-sm text-sm focus-visible:ring-primary resize-none"
                       />
@@ -153,10 +196,11 @@ export default function ContactPage() {
                     <Button
                       type="submit"
                       size="lg"
+                      disabled={loading}
                       className="w-full bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      Xabar Yuborish
+                      {loading ? t('submitting') : t('sendMessage')}
                     </Button>
                   </form>
                 )}

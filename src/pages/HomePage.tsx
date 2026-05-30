@@ -335,7 +335,7 @@ function ServicesSection() {
         <SectionHeading
           subtitle="Xizmatlarimiz"
           title="Biznesingizni Kuchaytiruvchi Xizmatlar"
-          description="Chamber ekotizimining asosiy ustunlari — biznesingiz rivojlanishida har bir qadamda yoningizda."
+          description="UUEA a'zolari uchun asosiy xizmatlar — AQSh va O'zbekiston o'rtasida biznes aloqalarini rivojlantirish."
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.slice(0, 4).map((svc) => (
@@ -390,27 +390,95 @@ function PartnersSection() {
   );
 }
 
+type HomeEvent = (typeof events)[number];
+
+function useCarouselVisible() {
+  const [visible, setVisible] = useState(1);
+
+  useEffect(() => {
+    const mqLg = window.matchMedia('(min-width: 1024px)');
+    const mqMd = window.matchMedia('(min-width: 768px)');
+    const update = () => {
+      if (mqLg.matches) setVisible(3);
+      else if (mqMd.matches) setVisible(2);
+      else setVisible(1);
+    };
+    update();
+    mqLg.addEventListener('change', update);
+    mqMd.addEventListener('change', update);
+    return () => {
+      mqLg.removeEventListener('change', update);
+      mqMd.removeEventListener('change', update);
+    };
+  }, []);
+
+  return visible;
+}
+
+function EventCard({ ev, registerLabel }: { ev: HomeEvent; registerLabel: string }) {
+  return (
+    <div className="glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group flex flex-col h-full">
+      <div className="aspect-[16/9] bg-muted relative overflow-hidden shrink-0">
+        <img src={ev.image} alt={ev.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
+        <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-sm max-w-[70%] truncate">
+          {ev.category}
+        </div>
+        <div className="absolute bottom-3 right-3 glass-card border-ancient rounded-sm px-3 py-1.5 text-xs text-primary font-semibold max-w-[45%] truncate text-right">
+          {ev.price}
+        </div>
+      </div>
+      <div className="p-4 sm:p-5 space-y-2 sm:space-y-3 flex flex-col flex-1">
+        <div className="text-primary text-xs tracking-wider">{ev.date} — {ev.time}</div>
+        <h3 className="font-jiang-cheng text-foreground font-bold text-base sm:text-sm leading-snug text-balance">{ev.title}</h3>
+        <p className="text-muted-foreground text-sm sm:text-xs leading-relaxed text-pretty line-clamp-3 sm:line-clamp-2 flex-1">{ev.description}</p>
+        <div className="text-xs text-muted-foreground flex items-start gap-1.5">
+          <span className="w-1 h-1 bg-primary rounded-full shrink-0 mt-1.5" />
+          <span className="min-w-0">{ev.location}</span>
+        </div>
+        <Link to="/tadbirlar" className="block pt-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full h-10 sm:h-9 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/30 hover:border-primary rounded-sm text-sm sm:text-xs transition-all"
+          >
+            {registerLabel}
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ---- Events Section ----
 function EventsSection() {
+  const { t } = useLang();
   const [active, setActive] = useState(0);
-  const visible = 3;
-  const maxIndex = events.length - visible;
+  const visible = useCarouselVisible();
+  const maxIndex = Math.max(0, events.length - visible);
+  const gapRem = 1.5;
+
+  useEffect(() => {
+    setActive((a) => Math.min(a, maxIndex));
+  }, [maxIndex]);
+
+  const slideWidth =
+    visible === 1
+      ? '100%'
+      : `calc((100% - ${(visible - 1) * gapRem}rem) / ${visible})`;
 
   return (
-    <section className="py-20 bg-background bg-sacred-geometry">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-end justify-between mb-12">
-          <SectionHeading
-            subtitle="Tadbirlar"
-            title="Kelgusi Tadbirlar"
-          />
-          <div className="flex gap-2 shrink-0">
+    <section className="py-16 sm:py-20 bg-background bg-sacred-geometry">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col gap-6 mb-8 md:flex-row md:items-end md:justify-between md:mb-12">
+          <SectionHeading subtitle="Tadbirlar" title="Kelgusi Tadbirlar" />
+          <div className="hidden md:flex gap-2 shrink-0 self-end">
             <Button
               size="icon"
               variant="ghost"
               onClick={() => setActive(Math.max(0, active - 1))}
               disabled={active === 0}
               className="border border-border rounded-sm w-9 h-9 text-muted-foreground hover:text-primary hover:border-primary/50"
+              aria-label="Previous events"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -420,49 +488,37 @@ function EventsSection() {
               onClick={() => setActive(Math.min(maxIndex, active + 1))}
               disabled={active >= maxIndex}
               className="border border-border rounded-sm w-9 h-9 text-muted-foreground hover:text-primary hover:border-primary/50"
+              aria-label="Next events"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <div className="overflow-hidden">
+
+        {/* Mobile: full-width stacked cards */}
+        <div className="flex flex-col gap-4 md:hidden">
+          {events.slice(0, 4).map((ev) => (
+            <EventCard key={ev.id} ev={ev} registerLabel={t('registerEvent')} />
+          ))}
+        </div>
+
+        {/* Tablet+: horizontal carousel */}
+        <div className="hidden md:block overflow-hidden">
           <div
-            className="flex gap-6 transition-transform duration-500"
-            style={{ transform: `translateX(-${active * (100 / visible)}%)` }}
+            className="flex gap-6 transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(calc(-${active} * (${slideWidth} + ${gapRem}rem)))` }}
           >
             {events.map((ev) => (
-              <div
-                key={ev.id}
-                className="min-w-[calc(33.333%-1rem)] glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group"
-              >
-                <div className="aspect-[16/9] bg-muted relative overflow-hidden">
-                  <img src={ev.image} alt={ev.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
-                  <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-sm">
-                    {ev.category}
-                  </div>
-                  <div className="absolute bottom-3 right-3 glass-card border-ancient rounded-sm px-3 py-1.5 text-xs text-primary font-semibold">
-                    {ev.price}
-                  </div>
-                </div>
-                <div className="p-5 space-y-3">
-                  <div className="text-primary text-xs tracking-wider">{ev.date} — {ev.time}</div>
-                  <h3 className="font-jiang-cheng text-foreground font-bold text-sm leading-tight text-balance">{ev.title}</h3>
-                  <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-2">{ev.description}</p>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <span className="w-1 h-1 bg-primary rounded-full" />
-                    {ev.location}
-                  </div>
-                  <Button size="sm" variant="ghost" onClick={() => {}} className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/30 hover:border-primary rounded-sm text-xs transition-all">
-                    Ro'yxatdan O'tish
-                  </Button>
-                </div>
+              <div key={ev.id} className="shrink-0" style={{ width: slideWidth }}>
+                <EventCard ev={ev} registerLabel={t('registerEvent')} />
               </div>
             ))}
           </div>
         </div>
-        <div className="text-center mt-10">
+
+        <div className="text-center mt-8 sm:mt-10">
           <Link to="/tadbirlar">
-            <Button variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm">
+            <Button variant="ghost" className="w-full sm:w-auto border border-primary/40 text-primary hover:bg-primary/10 rounded-sm">
               Barcha Tadbirlar
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -539,7 +595,7 @@ function MembershipSection() {
         <SectionHeading
           subtitle="A'zolik"
           title="A'zolik Rejalari"
-          description="Biznesingiz hajmiga mos reja tanlang va chamber imtiyozlaridan to'liq foydalaning."
+          description="Biznesingiz hajmiga mos reja tanlang va UUEA a'zolik imtiyozlaridan to'liq foydalaning."
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {membershipPlans.map((plan) => (

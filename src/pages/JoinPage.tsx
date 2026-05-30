@@ -159,7 +159,7 @@ export default function JoinPage() {
               <CheckCircle className="w-3.5 h-3.5 text-primary" />
               <span className="text-primary text-xs font-semibold tracking-wider">A'ZOLIKKA QO'SHILISH</span>
             </div>
-            <h1 className="font-jiang-cheng text-foreground text-3xl font-bold mb-2 text-balance">Biznes Chamber A'zosi Bo'ling</h1>
+            <h1 className="font-jiang-cheng text-foreground text-3xl font-bold mb-2 text-balance">UUEA A'zosi Bo'ling</h1>
             <p className="text-muted-foreground text-sm">Mintaqaning yetakchi biznes ekotizimiga qo'shiling</p>
           </div>
 

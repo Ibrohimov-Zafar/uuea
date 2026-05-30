@@ -203,6 +203,47 @@ func (a *API) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 
+func (a *API) CreateContactMessage(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Email     string `json:"email"`
+		Phone     string `json:"phone"`
+		Subject   string `json:"subject"`
+		Message   string `json:"message"`
+		Website   string `json:"website"` // honeypot
+	}
+	if err := readJSON(r, &body); err != nil {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	if body.Website != "" {
+		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+		return
+	}
+	first := strings.TrimSpace(body.FirstName)
+	last := strings.TrimSpace(body.LastName)
+	email := strings.TrimSpace(body.Email)
+	msg := strings.TrimSpace(body.Message)
+	if first == "" || last == "" || email == "" || msg == "" {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	if !strings.Contains(email, "@") {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	id := uuid.NewString()
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := a.DB.Exec(`INSERT INTO contact_messages (id, first_name, last_name, email, phone, subject, message, is_read, created_at) VALUES (?,?,?,?,?,?,?,0,?)`,
+		id, first, last, email, strings.TrimSpace(body.Phone), strings.TrimSpace(body.Subject), msg, now)
+	if err != nil {
+		errJSON(w, http.StatusInternalServerError, "server_error")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"id": id, "ok": true})
+}
+
 func (a *API) CreateHeroLead(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Email string `json:"email"`

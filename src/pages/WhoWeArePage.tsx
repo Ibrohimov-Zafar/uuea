@@ -49,7 +49,7 @@ export default function WhoWeArePage() {
                 20 Yillik Ishonch va Tajriba
               </h2>
               <p className="text-muted-foreground leading-relaxed text-pretty">
-                Biznes Chamber O'zbekiston — mintaqadagi eng yirik ixtisoslashgan savdo va tadbirkorlar assotsiatsiyasidir. Biz biznes egalarini, investorlarni va tadbirkorlarni bir joyga to'plab, ularning rivojlanishi uchun zarur muhit yaratamiz.
+                USA–Uzbekistan Entrepreneurs Association (UUEA) — AQSh va O'zbekiston o'rtasida tadbirkorlar, investorlar va biznes vakillarini birlashtiruvchi rasmiy assotsiatsiya. Delegatsiyalar, tadbirlar va a'zolik orqali transatlantik hamkorlikni rivojlantiramiz.
               </p>
               <p className="text-muted-foreground leading-relaxed text-pretty">
                 Assotsiatsiyamiz a'zolari mintaqadagi barcha asosiy sohalarda faoliyat yuritadi: IT va texnologiya, qurilish, sog'liqni saqlash, ta'lim, savdo va ko'plab boshqa sohalarda. Biz ularning ovozi va kuchi bo'lib xizmat qilamiz.

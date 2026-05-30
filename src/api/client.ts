@@ -112,6 +112,30 @@ export async function createHeroLead(email: string): Promise<{ id: string }> {
   return data;
 }
 
+export type ContactMessagePayload = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  website?: string;
+};
+
+export async function createContactMessage(body: ContactMessagePayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string; ok: boolean }>('/contact-messages', body);
+  return { id: data.id };
+}
+
+export async function adminContactMessages(): Promise<Record<string, unknown>[]> {
+  const { data } = await http.get<Record<string, unknown>[]>('/admin/list', { params: { table: 'contact_messages', limit: 500 } });
+  return asArray(data);
+}
+
+export async function adminDeleteContactMessage(id: string): Promise<void> {
+  await http.delete('/admin/contact-messages', { params: { id } });
+}
+
 export async function unsubscribeHeroLead(email: string): Promise<void> {
   await http.post('/hero-leads/unsubscribe', { email });
 }

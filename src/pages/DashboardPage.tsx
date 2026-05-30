@@ -200,10 +200,8 @@ export default function DashboardPage() {
       <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-sidebar border-r border-sidebar-border">
         {/* Logo */}
         <Link to="/" className="p-5 border-b border-sidebar-border flex items-center gap-2 hover:bg-sidebar-accent transition-colors">
-          <div className="w-7 h-7 rounded-sm border border-primary/50 bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-jiang-cheng text-xs font-bold">BC</span>
-          </div>
-          <span className="font-jiang-cheng text-sidebar-foreground text-sm font-bold">BIZNES CHAMBER</span>
+          <img src="/logo.png" alt="UUEA" className="h-7 w-auto object-contain" />
+          <span className="font-jiang-cheng text-sidebar-foreground text-sm font-bold">UUEA</span>
         </Link>
 
         {/* User card */}
@@ -394,7 +392,7 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
     <div className="space-y-6">
       <div>
         <h1 className="font-jiang-cheng text-foreground text-2xl font-bold">{t('welcome')}, {displayName.split(' ')[0]}!</h1>
-        <p className="text-muted-foreground text-sm mt-1">Biznes Chamber boshqaruv paneli</p>
+        <p className="text-muted-foreground text-sm mt-1">UUEA a'zolar boshqaruv paneli</p>
       </div>
 
       {isAdmin && (
@@ -565,7 +563,7 @@ function MembershipSection({ membership, loading, onCancelClick }: {
       <Star className="w-12 h-12 text-primary/30 mx-auto" />
       <div>
         <h3 className="font-jiang-cheng text-foreground font-bold text-lg">{t('noMembership')}</h3>
-        <p className="text-muted-foreground text-sm mt-1">Biznes Chamber a'zosi bo'lib, ko'proq imkoniyatlarga ega bo'ling</p>
+        <p className="text-muted-foreground text-sm mt-1">UUEA a'zosi bo'lib, ko'proq imkoniyatlarga ega bo'ling</p>
       </div>
       <Link to="/qoshilish">
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">{t('join')}</Button>

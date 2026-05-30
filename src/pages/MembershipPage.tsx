@@ -126,7 +126,7 @@ export default function MembershipPage() {
               { title: "Ekskluziv Tadbirlarga Kirish", rejaga: "A'zolik rejangizga mos tadbirlar va forumlar kirish imkoniyati." , desc: "A'zolik rejangizga mos tadbirlar va forumlar kirish imkoniyati." },
               { title: "Professional Maslahatlar", desc: "Huquqiy, moliyaviy va marketing bo'yicha ekspert maslahatlari." },
               { title: "Tarmoqlash Imkoniyatlari", desc: "Oylik biznes uchrashuvlari va networking tadbirlari." },
-              { title: "Marketing Ko'magi", desc: "Chamber platformasida reklama va PR imkoniyatlari." },
+              { title: "Marketing Ko'magi", desc: "UUEA platformasida reklama va PR imkoniyatlari." },
               { title: "Hamkorlik Tarmog'i", desc: "2500+ a'zo bilan to'g'ridan-to'g'ri aloqa va hamkorlik." },
             ].map((item) => (
               <div key={item.title} className="glass-card border-ancient rounded-sm p-6 space-y-3 hover-gold-glow card-ancient">

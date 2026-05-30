@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, Shield } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang } from '@/contexts/LangContext';
+import Logo from '@/components/common/Logo';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -62,12 +63,9 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8 space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 rounded-sm mx-auto">
-            <Shield className="w-8 h-8 text-primary" />
+          <div className="flex justify-center">
+            <Logo linkTo="/" size="lg" />
           </div>
-          <h1 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-            Biznes <span className="text-gold-gradient">Assotsiatsiya</span>
-          </h1>
           <p className="text-muted-foreground text-sm">{t('authPortal')}</p>
         </div>
 
@@ -130,12 +128,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          <div className="glass-card border border-primary/20 rounded-sm p-3 bg-primary/5 text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold text-primary text-[10px] uppercase tracking-wider">{t('testAccounts')}</p>
-            <p><span className="text-foreground">admin</span> / admin123 — Super Admin</p>
-            <p><span className="text-foreground">biznes</span> / biznes123 — Business Owner</p>
-          </div>
 
           <div className="section-divider" />
 

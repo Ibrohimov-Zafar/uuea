@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Phone, Mail, User, LayoutDashboard, LogOut, Shield, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang, type Lang } from '@/contexts/LangContext';
+import Logo from '@/components/common/Logo';
+import { SITE } from '@/config/site';
 
 const NAV_HREFS = [
   { key: 'home', href: '/' },
@@ -70,13 +72,13 @@ export default function Header() {
       <div className="bg-navy-dark border-b border-border/50 h-10 hidden md:flex items-center">
         <div className="max-w-7xl mx-auto w-full px-6 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <a href="tel:+998712000000" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs">
+            <a href={`tel:${SITE.phoneTel}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs">
               <Phone className="w-3 h-3 text-primary" />
-              <span>+998 71 200-00-00</span>
+              <span>{SITE.phone}</span>
             </a>
-            <a href="mailto:info@chamber.uz" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs">
+            <a href={`mailto:${SITE.email}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs">
               <Mail className="w-3 h-3 text-primary" />
-              <span>info@chamber.uz</span>
+              <span>{SITE.email}</span>
             </a>
           </div>
           <div className="flex items-center gap-3">
@@ -111,19 +113,7 @@ export default function Header() {
       )}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-sm border border-primary/50 flex items-center justify-center bg-primary/10">
-              <span className="text-primary font-jiang-cheng text-sm font-bold">BC</span>
-            </div>
-            <div className="hidden sm:block">
-              <div className="font-jiang-cheng text-foreground text-sm font-bold leading-tight tracking-wide">
-                BIZNES CHAMBER
-              </div>
-              <div className="text-primary text-[10px] tracking-widest uppercase leading-tight">
-                O'zbekiston
-              </div>
-            </div>
-          </Link>
+          <Logo showText={false} size="header" />
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-1">
@@ -203,14 +193,20 @@ export default function Header() {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-sidebar w-72 border-l border-border p-0">
+              <SheetContent side="right" showCloseButton={false} className="bg-sidebar w-72 border-l border-border p-0">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between p-5 border-b border-border">
-                    <div className="font-jiang-cheng text-foreground text-sm font-bold">BIZNES CHAMBER</div>
-                    <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}
-                      className="text-muted-foreground">
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <Logo linkTo={false} showText={false} size="header" />
+                    <SheetClose asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Menyuni yopish"
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </SheetClose>
                   </div>
 
                   {/* Mobile language switcher */}
@@ -285,11 +281,11 @@ export default function Header() {
                   <div className="p-4 border-t border-border space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Phone className="w-3 h-3 text-primary" />
-                      <span>+998 71 200-00-00</span>
+                      <span>{SITE.phone}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Mail className="w-3 h-3 text-primary" />
-                      <span>info@chamber.uz</span>
+                      <span>{SITE.email}</span>
                     </div>
                     {user ? (
                       <Button onClick={handleSignOut} variant="ghost"

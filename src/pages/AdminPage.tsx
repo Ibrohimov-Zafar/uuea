@@ -7,7 +7,7 @@ import {
   ShieldCheck, CheckCircle2, XCircle, RefreshCw, Save,
   BarChart2, CheckCircle, AlertCircle, Clock, Download, FileSpreadsheet,
   Bell, Send, MapPin, Filter, ChevronDown as ChevronDownIcon, Mail,
-  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard
+  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard, MessageSquare
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -55,6 +55,7 @@ import {
   adminDeletePlan,
   sendEmail,
 } from '@/api/client';
+import ContactMessagesSection from '@/pages/admin/ContactMessagesSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang } from '@/contexts/LangContext';
 import { toast } from 'sonner';
@@ -72,6 +73,7 @@ type Section =
   | 'notifications'
   | 'leads'
   | 'campaigns'
+  | 'contact'
   | 'news'
   | 'plans';
 
@@ -168,7 +170,7 @@ function exportMembersPDF(
   drawPage();
   doc.setTextColor(...GOLD);
   doc.setFontSize(16); doc.setFont("helvetica", "bold");
-  doc.text("BIZNES CHAMBER", W / 2, 18, { align: "center" });
+  doc.text("UUEA", W / 2, 18, { align: "center" });
   doc.setFontSize(9); doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
   doc.text("A\'ZOLAR RO\'YXATI", W / 2, 25, { align: "center" });
@@ -219,7 +221,7 @@ function exportMembersPDF(
     doc.setPage(i);
     doc.setFontSize(7); doc.setTextColor(...GRAY);
     doc.text(i + " / " + pageCount, W / 2, H - 5, { align: "center" });
-    doc.text("Biznes Chamber " + new Date().getFullYear(), 28, H - 5);
+    doc.text("UUEA " + new Date().getFullYear(), 28, H - 5);
   }
   const filename = "azolar-" + new Date().toISOString().slice(0, 10) + ".pdf";
   doc.save(filename);
@@ -264,6 +266,7 @@ export default function AdminPage() {
     { id: 'events',      label: t('eventsLabel'),          icon: <Calendar className="w-4 h-4" /> },
     { id: 'notifications', label: 'Bildirishnomalar',         icon: <Bell className="w-4 h-4" /> },
     { id: 'leads',          label: 'Email Obunalar',           icon: <Mail className="w-4 h-4" /> },
+    { id: 'contact',        label: 'Aloqa Xabarlari',          icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'campaigns',      label: 'Kampaniyalar',             icon: <Megaphone className="w-4 h-4" /> },
   ];
 
@@ -373,6 +376,7 @@ export default function AdminPage() {
           {section === 'events'      && <EventsSection />}
           {section === 'notifications' && <NotificationsSection />}
           {section === 'leads'         && <LeadsSection />}
+          {section === 'contact'       && <ContactMessagesSection />}
           {section === 'campaigns'     && <CampaignsSection />}
           {section === 'news'          && <NewsAdminSection />}
           {section === 'plans'         && <PlansAdminSection />}
@@ -1470,7 +1474,7 @@ function NotificationsSection() {
       icon: "Calendar",
       type: 'event' as typeof form.type,
       title: "Yangi Tadbir E'loni",
-      body: "Biznes Chamber yangi tadbirga taklif qiladi. Batafsil ma'lumot va ro'yxatdan o'tish uchun tadbirlar sahifasiga tashrif buyuring.",
+      body: "UUEA yangi tadbirga taklif qiladi. Batafsil ma'lumot va ro'yxatdan o'tish uchun tadbirlar sahifasiga tashrif buyuring.",
       link: "/tadbirlar",
     },
     {
@@ -1485,8 +1489,8 @@ function NotificationsSection() {
       label: "Xush Kelibsiz",
       icon: "Star",
       type: 'success' as typeof form.type,
-      title: "Biznes Chamber Oilasiga Xush Kelibsiz!",
-      body: "Siz Biznes Chamber a'zoligiga muvaffaqiyatli qo'shildingiz. Dashboard orqali barcha imkoniyatlardan foydalanishingiz mumkin.",
+      title: "UUEA Oilasiga Xush Kelibsiz!",
+      body: "Siz UUEA a'zoligiga muvaffaqiyatli qo'shildingiz. Dashboard orqali barcha imkoniyatlardan foydalanishingiz mumkin.",
       link: "/dashboard",
     },
   ];

@@ -116,7 +116,7 @@ export async function downloadPaymentReceipt(order: ReceiptOrder, lang: Lang = '
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(...GOLD);
-  doc.text('BIZNES CHAMBER', margin + 15, headerY + 5);
+  doc.text('UUEA', margin + 15, headerY + 5);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...MUTED);

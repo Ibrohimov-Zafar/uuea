@@ -59,7 +59,7 @@ func (a *API) AdminList(w http.ResponseWriter, r *http.Request) {
 	}
 	allowed := map[string]bool{
 		"users": true, "businesses": true, "events": true, "business_submissions": true,
-		"hero_leads": true, "email_campaigns": true, "orders": true, "memberships": true,
+		"hero_leads": true, "contact_messages": true, "email_campaigns": true, "orders": true, "memberships": true,
 		"notifications": true,
 	}
 	if !allowed[table] {
@@ -283,6 +283,12 @@ func (a *API) AdminHeroLeads(w http.ResponseWriter, r *http.Request) {
 func (a *API) AdminDeleteHeroLead(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	_, _ = a.DB.Exec(`DELETE FROM hero_leads WHERE id=?`, id)
+	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (a *API) AdminDeleteContactMessage(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	_, _ = a.DB.Exec(`DELETE FROM contact_messages WHERE id=?`, id)
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 

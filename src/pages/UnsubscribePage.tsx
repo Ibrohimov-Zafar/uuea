@@ -67,7 +67,7 @@ export default function UnsubscribePage() {
 
           {/* Title */}
           <div className="space-y-2">
-            <div className="text-[10px] text-primary/70 tracking-[3px] uppercase">Biznes Chamber</div>
+            <div className="text-[10px] text-primary/70 tracking-[3px] uppercase">UUEA</div>
             <h1 className="font-jiang-cheng text-xl font-bold text-foreground text-balance">
               {state === 'loading' && 'Tekshirilmoqda...'}
               {state === 'success' && "Obunadan Chiqildi"}
