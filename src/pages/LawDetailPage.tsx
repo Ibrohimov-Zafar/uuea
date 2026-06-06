@@ -4,7 +4,6 @@ import { ArrowLeft, Calendar, Scale, FileText } from 'lucide-react';
 import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { legalResources as mockLegal } from '@/data/legalResources';
 import { getLegalResource } from '@/api/client';
 import type { LegalResource } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
@@ -25,35 +24,10 @@ export default function LawDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const data = await getLegalResource(id);
-        setItem(data);
-      } catch {
-        const mock = mockLegal.find((r) => r.id === id);
-        if (mock) {
-          setItem({
-            id: mock.id,
-            title: mock.title,
-            excerpt: mock.excerpt,
-            body: mock.body,
-            category: mock.category,
-            resource_type: mock.type,
-            source: mock.source,
-            published_date: mock.date,
-            is_featured: mock.featured ? 1 : 0,
-            status: 'published',
-            created_at: mock.date,
-            updated_at: mock.date,
-          });
-        } else {
-          setItem(null);
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
+    getLegalResource(id)
+      .then(setItem)
+      .catch(() => setItem(null))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const displayDate = item?.published_date

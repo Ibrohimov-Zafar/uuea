@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { legalCategories, legalResources as mockLegal } from '@/data/legalResources';
+import { legalCategories } from '@/data/legalResources';
 import { getLegalResources } from '@/api/client';
 import type { LegalResource } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
@@ -41,41 +41,10 @@ export default function LawsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const data = await getLegalResources();
-        if (data.length > 0) {
-          setItems(data.map(toDisplay));
-        } else {
-          setItems(
-            mockLegal.map((m) => ({
-              id: m.id,
-              title: m.title,
-              excerpt: m.excerpt,
-              category: m.category,
-              date: m.date,
-              source: m.source,
-              featured: Boolean(m.featured),
-            }))
-          );
-        }
-      } catch {
-        setItems(
-          mockLegal.map((m) => ({
-            id: m.id,
-            title: m.title,
-            excerpt: m.excerpt,
-            category: m.category,
-            date: m.date,
-            source: m.source,
-            featured: Boolean(m.featured),
-          }))
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
+    getLegalResources()
+      .then((data) => setItems(data.map(toDisplay)))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = useMemo(() => {
@@ -149,7 +118,12 @@ export default function LawsPage() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-muted-foreground py-16">{t('noResults')}</p>
+            <div className="glass-card border-ancient rounded-sm py-20 text-center space-y-3">
+              <Scale className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+              <p className="text-muted-foreground text-sm">
+                {items.length === 0 ? "Huquqiy resurslar hali mavjud emas" : t('noResults')}
+              </p>
+            </div>
           ) : (
             <>
               {featured && (

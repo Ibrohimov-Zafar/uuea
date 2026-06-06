@@ -93,7 +93,6 @@ function HeroSection() {
   // Parallax + fade-in state
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const videoRef   = useRef<HTMLVideoElement>(null);
   const [scrollY, setScrollY]   = useState(0);
   const [visible, setVisible]   = useState(false);
 
@@ -138,27 +137,19 @@ function HeroSection() {
 
   return (
     <section ref={sectionRef} className="relative min-h-[95vh] flex items-center overflow-hidden bg-navy-dark">
-      {/* ── Video Background with parallax ── */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        autoPlay
-        loop
-        muted
-        playsInline
-        poster="https://miaoda-site-img.s3cdn.medo.dev/images/KLing_e96d7921-c5e4-4732-b341-2cbb2a84383f.jpg"
+      {/* ── Hero background with parallax ── */}
+      <img
+        src="/h.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover object-center"
         style={{ transform: `translateY(${videoParallax}px) scale(1.12)`, willChange: 'transform' }}
-      >
-        <source src="https://cdn.pixabay.com/video/2023/07/22/172549-848786925_large.mp4" type="video/mp4" />
-        <source src="https://cdn.pixabay.com/video/2021/09/04/87009-600857783_large.mp4" type="video/mp4" />
-      </video>
+      />
 
-      {/* Dark mystical overlays */}
-      <div className="absolute inset-0 bg-navy-dark/75" />
-      <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/95 via-navy-dark/65 to-navy-dark/35" />
-      <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/90 via-transparent to-navy-dark/40" />
-      <div className="absolute inset-0 sacred-geometry-bg opacity-25" />
-      <div className="absolute inset-0 constellation-bg opacity-15" />
+      {/* Overlays — lighter so the photo stays visible */}
+      <div className="absolute inset-0 bg-navy-dark/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/55 via-navy-dark/25 to-navy-dark/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/50 via-transparent to-navy-dark/20" />
 
       {/* Runic circle overlay */}
       <div className="absolute top-16 right-10 w-[420px] h-[420px] z-0 pointer-events-none hidden xl:block">
