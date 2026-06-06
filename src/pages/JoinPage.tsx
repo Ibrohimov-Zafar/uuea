@@ -28,12 +28,20 @@ const INDUSTRIES = [
   'Media va Reklama', 'Energetika', 'Boshqa',
 ];
 
-const US_STATES = ['Toshkent', 'Samarqand', 'Buxoro', 'Andijon', 'Namangan', 'Farg\'ona', 'Qashqadaryo', 'Surxondaryo', 'Xorazm', 'Navoiy', 'Jizzax', 'Sirdaryo', 'Qoraqalpog\'iston'];
+const UZ_REGIONS = ['Toshkent', 'Samarqand', 'Buxoro', 'Andijon', 'Namangan', 'Farg\'ona', 'Qashqadaryo', 'Surxondaryo', 'Xorazm', 'Navoiy', 'Jizzax', 'Sirdaryo', 'Qoraqalpog\'iston'];
+
+const COUNTRIES = [
+  'United States', 'Uzbekistan', 'United Kingdom', 'Canada', 'Germany', 'Turkey',
+  'United Arab Emirates', 'South Korea', 'China', 'India', 'Kazakhstan', 'Russia', 'Other',
+];
+
+type ResidentType = 'uz' | 'intl';
 
 interface BizForm {
   first_name: string; last_name: string; email: string;
   phone: string; mobile: string; company_name: string; website: string;
   dba_name: string; industry: string;
+  country: string;
   state: string; city: string; street: string; zip: string;
 }
 
@@ -49,10 +57,11 @@ export default function JoinPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [membership, setMembership] = useState<Membership | null>(null);
   const [loadingMembership, setLoadingMembership] = useState(true);
+  const [residentType, setResidentType] = useState<ResidentType>('uz');
   const [form, setForm] = useState<BizForm>({
     first_name: '', last_name: '', email: '', phone: '', mobile: '',
     company_name: '', website: '', dba_name: '', industry: '',
-    state: '', city: '', street: '', zip: '',
+    country: '', state: '', city: '', street: '', zip: '',
   });
 
   useEffect(() => {
@@ -101,6 +110,16 @@ export default function JoinPage() {
       toast.error('Ism, familiya va email majburiy'); return;
     }
     if (!/\S+@\S+\.\S+/.test(form.email)) { toast.error("To'g'ri email kiriting"); return; }
+    if (!form.phone.trim()) { toast.error('Telefon majburiy'); return; }
+    if (!form.city.trim() || !form.street.trim()) {
+      toast.error('Shahar va manzil majburiy'); return;
+    }
+    if (residentType === 'uz' && !form.state.trim()) {
+      toast.error('Viloyatni tanlang'); return;
+    }
+    if (residentType === 'intl' && !form.country.trim()) {
+      toast.error('Mamlakatni tanlang'); return;
+    }
     setStep(3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -116,6 +135,21 @@ export default function JoinPage() {
         user_id: user?.id || null,
         customer_email: form.email,
         customer_name: `${form.first_name} ${form.last_name}`.trim(),
+        resident_type: residentType,
+        first_name: form.first_name,
+        last_name: form.last_name,
+        email: form.email,
+        phone: form.phone,
+        mobile: form.mobile,
+        company_name: form.company_name,
+        website: form.website,
+        dba_name: form.dba_name,
+        industry: form.industry,
+        country: form.country,
+        state: form.state,
+        city: form.city,
+        street: form.street,
+        zip: form.zip,
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/qoshilish`,
       });
@@ -308,6 +342,50 @@ export default function JoinPage() {
                   </h2>
                 </div>
                 <div className="p-6 space-y-5">
+                  {/* Resident type toggle */}
+                  <div className="space-y-2">
+                    <div className="flex rounded-sm border border-border/60 p-1 bg-background/40 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResidentType('uz');
+                          setForm(f => ({
+                            ...f,
+                            country: '',
+                            state: UZ_REGIONS.includes(f.state) ? f.state : '',
+                          }));
+                        }}
+                        className={cn(
+                          'flex-1 py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-sm transition-all',
+                          residentType === 'uz'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                      >
+                        {t('joinResidentUz')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResidentType('intl');
+                          setForm(f => ({
+                            ...f,
+                            state: UZ_REGIONS.includes(f.state) ? '' : f.state,
+                          }));
+                        }}
+                        className={cn(
+                          'flex-1 py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-sm transition-all',
+                          residentType === 'intl'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                      >
+                        {t('joinResidentIntl')}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground text-center">{t('joinResidentHint')}</p>
+                  </div>
+
                   {/* Name row */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -322,28 +400,61 @@ export default function JoinPage() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-normal text-muted-foreground">Billing Email *</Label>
-                    <Input type="email" value={form.email} onChange={e => inp('email', e.target.value)} placeholder="email@company.uz" className="bg-background/60 border-border/60 rounded-sm" />
+                    <Input
+                      type="email"
+                      value={form.email}
+                      onChange={e => inp('email', e.target.value)}
+                      placeholder={residentType === 'uz' ? 'email@company.uz' : 'email@company.com'}
+                      className="bg-background/60 border-border/60 rounded-sm"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-normal text-muted-foreground">Mobil</Label>
-                      <Input value={form.mobile} onChange={e => inp('mobile', e.target.value)} placeholder="+998 90 ..." className="bg-background/60 border-border/60 rounded-sm" />
+                      <Input
+                        value={form.mobile}
+                        onChange={e => inp('mobile', e.target.value)}
+                        placeholder={residentType === 'uz' ? '+998 90 123 45 67' : '+1 555 000 0000'}
+                        className="bg-background/60 border-border/60 rounded-sm"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs font-normal text-muted-foreground">Telefon *</Label>
-                      <Input value={form.phone} onChange={e => inp('phone', e.target.value)} placeholder="+998 71 ..." className="bg-background/60 border-border/60 rounded-sm" />
+                      <Input
+                        value={form.phone}
+                        onChange={e => inp('phone', e.target.value)}
+                        placeholder={residentType === 'uz' ? '+998 71 200 00 00' : '+1 212 555 0100'}
+                        className="bg-background/60 border-border/60 rounded-sm"
+                      />
                     </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
+                      <Briefcase className="w-3 h-3" />{t('joinCompanyName')}
+                    </Label>
+                    <Input
+                      value={form.company_name}
+                      onChange={e => inp('company_name', e.target.value)}
+                      placeholder={residentType === 'uz' ? 'Kompaniya MChJ' : 'Company LLC'}
+                      className="bg-background/60 border-border/60 rounded-sm"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
                       <Globe className="w-3 h-3" />Veb-sayt
                     </Label>
-                    <Input value={form.website} onChange={e => inp('website', e.target.value)} placeholder="example.uz" className="bg-background/60 border-border/60 rounded-sm" />
+                    <Input
+                      value={form.website}
+                      onChange={e => inp('website', e.target.value)}
+                      placeholder={residentType === 'uz' ? 'www.example.uz' : 'www.example.com'}
+                      className="bg-background/60 border-border/60 rounded-sm"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
                         <Briefcase className="w-3 h-3" />DBA Nomi
@@ -366,33 +477,79 @@ export default function JoinPage() {
                   {/* Billing Address */}
                   <div className="pt-3 border-t border-border/40">
                     <h3 className="font-jiang-cheng text-foreground text-sm font-bold mb-4 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-primary" />Manzil
+                      <MapPin className="w-4 h-4 text-primary" />{t('address')}
                     </h3>
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-normal text-muted-foreground">Viloyat</Label>
-                        <Select value={form.state} onValueChange={v => inp('state', v)}>
-                          <SelectTrigger className="bg-background/60 border-border/60 rounded-sm">
-                            <SelectValue placeholder="Viloyat tanlang" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      {residentType === 'intl' && (
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-normal text-muted-foreground">Shahar *</Label>
-                          <Input value={form.city} onChange={e => inp('city', e.target.value)} placeholder="Shahar" className="bg-background/60 border-border/60 rounded-sm" />
+                          <Label className="text-xs font-normal text-muted-foreground">{t('joinCountry')} *</Label>
+                          <Select value={form.country} onValueChange={v => inp('country', v)}>
+                            <SelectTrigger className="bg-background/60 border-border/60 rounded-sm">
+                              <SelectValue placeholder={t('joinSelectCountry')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {COUNTRIES.map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {residentType === 'uz' ? (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-normal text-muted-foreground">{t('joinRegion')} *</Label>
+                          <Select value={form.state} onValueChange={v => inp('state', v)}>
+                            <SelectTrigger className="bg-background/60 border-border/60 rounded-sm">
+                              <SelectValue placeholder="Viloyat tanlang" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {UZ_REGIONS.map(s => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-normal text-muted-foreground">{t('joinStateProvince')}</Label>
+                          <Input
+                            value={form.state}
+                            onChange={e => inp('state', e.target.value)}
+                            placeholder="NY, CA, TX..."
+                            className="bg-background/60 border-border/60 rounded-sm"
+                          />
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-normal text-muted-foreground">{t('joinCity')} *</Label>
+                          <Input
+                            value={form.city}
+                            onChange={e => inp('city', e.target.value)}
+                            placeholder={residentType === 'uz' ? 'Toshkent' : 'New York'}
+                            className="bg-background/60 border-border/60 rounded-sm"
+                          />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-normal text-muted-foreground">Zip/Pochta kodi</Label>
-                          <Input value={form.zip} onChange={e => inp('zip', e.target.value)} placeholder="100000" className="bg-background/60 border-border/60 rounded-sm" />
+                          <Label className="text-xs font-normal text-muted-foreground">{t('joinPostalCode')}</Label>
+                          <Input
+                            value={form.zip}
+                            onChange={e => inp('zip', e.target.value)}
+                            placeholder={residentType === 'uz' ? '100000' : '10001'}
+                            className="bg-background/60 border-border/60 rounded-sm"
+                          />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-normal text-muted-foreground">Ko'cha manzili *</Label>
-                        <Input value={form.street} onChange={e => inp('street', e.target.value)} placeholder="Ko'cha, uy raqami" className="bg-background/60 border-border/60 rounded-sm" />
+                        <Label className="text-xs font-normal text-muted-foreground">{t('joinStreetAddress')} *</Label>
+                        <Input
+                          value={form.street}
+                          onChange={e => inp('street', e.target.value)}
+                          placeholder={residentType === 'uz' ? "Ko'cha, uy raqami" : '123 Main St, Suite 100'}
+                          className="bg-background/60 border-border/60 rounded-sm"
+                        />
                       </div>
                     </div>
                   </div>

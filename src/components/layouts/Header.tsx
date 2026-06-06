@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Phone, Mail, User, LayoutDashboard, LogOut, Shield, Globe } from 'lucide-react';
+import { Menu, X, Phone, Mail, User, LayoutDashboard, LogOut, Shield, Globe, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang, type Lang } from '@/contexts/LangContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import Logo from '@/components/common/Logo';
 import { SITE } from '@/config/site';
 
@@ -14,6 +15,8 @@ const NAV_HREFS = [
   { key: 'about', href: '/biz-haqimizda' },
   { key: 'services', href: '/xizmatlar' },
   { key: 'membership', href: '/azolik' },
+  { key: 'corporate', href: '/korporativ' },
+  { key: 'laws', href: '/qonunlar' },
   { key: 'directory', href: '/katalog' },
   { key: 'events', href: '/tadbirlar' },
   { key: 'news', href: '/yangiliklar' },
@@ -35,6 +38,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
   const { lang, setLang, t } = useLang();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -81,7 +85,19 @@ export default function Header() {
               <span>{SITE.email}</span>
             </a>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-7 h-7 rounded-sm border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark'
+                ? <Sun className="w-3.5 h-3.5" />
+                : <Moon className="w-3.5 h-3.5" />
+              }
+            </button>
             {/* Language switcher */}
             <div className="flex items-center gap-1 border border-border/40 rounded-sm px-1 py-0.5">
               <Globe className="w-3 h-3 text-primary mr-0.5" />
@@ -209,25 +225,38 @@ export default function Header() {
                     </SheetClose>
                   </div>
 
-                  {/* Mobile language switcher */}
-                  <div className="px-4 py-2 border-b border-border/40 flex items-center gap-2">
-                    <Globe className="w-3.5 h-3.5 text-primary" />
-                    <div className="flex gap-1">
-                      {LANGS.map(l => (
-                        <button
-                          key={l.code}
-                          onClick={() => setLang(l.code)}
-                          className={cn(
-                            'text-xs px-2 py-1 rounded-sm transition-colors font-semibold',
-                            lang === l.code
-                              ? 'bg-primary text-primary-foreground'
-                              : 'text-muted-foreground hover:text-foreground'
-                          )}
-                        >
-                          {l.label}
-                        </button>
-                      ))}
+                  {/* Mobile language + theme switcher */}
+                  <div className="px-4 py-2 border-b border-border/40 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-3.5 h-3.5 text-primary" />
+                      <div className="flex gap-1">
+                        {LANGS.map(l => (
+                          <button
+                            key={l.code}
+                            onClick={() => setLang(l.code)}
+                            className={cn(
+                              'text-xs px-2 py-1 rounded-sm transition-colors font-semibold',
+                              lang === l.code
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            {l.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      className="flex items-center justify-center w-8 h-8 rounded-sm border border-border/40 text-muted-foreground hover:text-primary transition-colors"
+                      aria-label="Toggle theme"
+                    >
+                      {theme === 'dark'
+                        ? <Sun className="w-4 h-4" />
+                        : <Moon className="w-4 h-4" />
+                      }
+                    </button>
                   </div>
 
                   {user && (
@@ -279,9 +308,17 @@ export default function Header() {
                   </nav>
 
                   <div className="p-4 border-t border-border space-y-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <a href={`tel:${SITE.phoneTel}`} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary">
                       <Phone className="w-3 h-3 text-primary" />
                       <span>{SITE.phone}</span>
+                    </a>
+                    <a href={`tel:${SITE.phoneAltTel}`} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary">
+                      <Phone className="w-3 h-3 text-primary" />
+                      <span>{SITE.phoneAlt}</span>
+                    </a>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone className="w-3 h-3 text-primary" />
+                      <span>{SITE.phoneUz}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Mail className="w-3 h-3 text-primary" />

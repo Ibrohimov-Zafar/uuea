@@ -12,6 +12,8 @@ export default function Footer() {
     { label: t('about'), href: '/biz-haqimizda' },
     { label: t('services'), href: '/xizmatlar' },
     { label: t('membership'), href: '/azolik' },
+    { label: t('corporate'), href: '/korporativ' },
+    { label: t('laws'), href: '/qonunlar' },
     { label: t('directory'), href: '/katalog' },
     { label: t('events'), href: '/tadbirlar' },
     { label: t('news'), href: '/yangiliklar' },
@@ -118,9 +120,19 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                <a href={`tel:${SITE.phoneUzTel}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  {SITE.phoneUz}
+                <a href={`tel:${SITE.phoneAltTel}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  {SITE.phoneAlt}
                 </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-primary shrink-0" />
+                {SITE.phoneUzTel ? (
+                  <a href={`tel:${SITE.phoneUzTel}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {SITE.phoneUz}
+                  </a>
+                ) : (
+                  <span className="text-sm text-muted-foreground">{SITE.phoneUz}</span>
+                )}
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary shrink-0" />

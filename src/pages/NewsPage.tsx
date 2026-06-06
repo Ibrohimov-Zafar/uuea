@@ -200,13 +200,6 @@ export default function NewsPage() {
             </div>
           )}
 
-          {filtered.length > 0 && (
-            <div className="text-center mt-12">
-              <Button onClick={() => {}} variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm px-10">
-                Ko'proq Yuklash
-              </Button>
-            </div>
-          )}
         </div>
       </section>
     </Layout>

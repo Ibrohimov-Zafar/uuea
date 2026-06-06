@@ -60,7 +60,7 @@ func (a *API) AdminList(w http.ResponseWriter, r *http.Request) {
 	allowed := map[string]bool{
 		"users": true, "businesses": true, "events": true, "business_submissions": true,
 		"hero_leads": true, "contact_messages": true, "email_campaigns": true, "orders": true, "memberships": true,
-		"notifications": true,
+		"membership_applications": true, "notifications": true,
 	}
 	if !allowed[table] {
 		errJSON(w, http.StatusBadRequest, "invalid_table")

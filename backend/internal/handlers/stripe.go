@@ -49,8 +49,14 @@ func (a *API) StripeCheckout(w http.ResponseWriter, r *http.Request) {
 	items, _ := json.Marshal([]map[string]any{{"name": name, "price": price, "quantity": 1, "plan_slug": planSlug}})
 	orderID := uuid.NewString()
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, _ = a.DB.Exec(`INSERT INTO orders (id, user_id, items, total_amount, currency, status, customer_email, customer_name, created_at, updated_at) VALUES (?,?,?,?,?,'pending',?,?,?,?)`,
-		orderID, nullIfEmpty(userID), string(items), price, "usd", customerEmail, customerName, now, now)
+	_, _ = a.DB.Exec(`INSERT INTO orders (id, user_id, items, total_amount, currency, status, customer_email, customer_name, metadata, created_at, updated_at) VALUES (?,?,?,?,?,'pending',?,?,?,?,?)`,
+		orderID, nullIfEmpty(userID), string(items), price, "usd", customerEmail, customerName, `{"kind":"membership"}`, now, now)
+
+	if err := insertMembershipApplication(a, orderID, userID, planSlug, body); err != nil {
+		_, _ = a.DB.Exec(`DELETE FROM orders WHERE id=?`, orderID)
+		errJSON(w, http.StatusBadRequest, "invalid_billing")
+		return
+	}
 
 	origin := r.Header.Get("Origin")
 	if origin == "" {
@@ -132,6 +138,7 @@ func (a *API) StripeVerifyPayment(w http.ResponseWriter, r *http.Request) {
 		}
 		_, _ = a.DB.Exec(`UPDATE orders SET status='completed', completed_at=?, stripe_payment_intent_id=? WHERE id=?`,
 			now, piID, orderID)
+		markMembershipApplicationPaid(a, orderID)
 		if userID != "" && planSlug != "" {
 			mid := uuid.NewString()
 			expires := time.Now().UTC().AddDate(1, 0, 0).Format(time.RFC3339)

@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/translations';
+import { siteReceiptFooter } from '@/config/site';
 import { formatDateLocale } from '@/i18n/locale';
 import type { Lang } from '@/i18n/types';
 
@@ -237,7 +238,7 @@ export async function downloadPaymentReceipt(order: ReceiptOrder, lang: Lang = '
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(...MUTED);
-  doc.text(tr('receiptFooter'), W / 2, footerY + 2, { align: 'center' });
+  doc.text(siteReceiptFooter(), W / 2, footerY + 2, { align: 'center' });
   doc.setFontSize(5.5);
   doc.setTextColor(90, 110, 130);
   doc.text(tr('receiptLegal', { year: new Date().getFullYear() }), W / 2, footerY + 7, { align: 'center' });

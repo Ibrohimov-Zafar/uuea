@@ -6,9 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getNewsPost } from '@/api/client';
 import type { NewsPost } from '@/types/types';
+import { useLang } from '@/contexts/LangContext';
+import { PageSeo } from '@/components/common/PageMeta';
+import {
+  buildArticleJsonLd,
+  buildDetailBreadcrumbs,
+  buildBreadcrumbJsonLd,
+  getSiteOrigin,
+  jsonLdBundle,
+} from '@/config/seo';
 
 export default function NewsDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { lang } = useLang();
   const [post, setPost] = useState<NewsPost | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,8 +40,35 @@ export default function NewsDetailPage() {
   const dateStr = post?.published_at || post?.created_at || '';
   const displayDate = dateStr ? new Date(dateStr).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
+  const seoPath = id ? `/yangiliklar/${id}` : '/yangiliklar';
+  const seoDesc = post?.excerpt || post?.body?.slice(0, 200) || '';
+  const origin = getSiteOrigin();
+
   return (
     <Layout>
+      {post && (
+        <PageSeo
+          title={post.title}
+          description={seoDesc}
+          path={seoPath}
+          type="article"
+          image={post.image_url || undefined}
+          publishedTime={post.published_at || post.created_at}
+          modifiedTime={post.updated_at || post.published_at || post.created_at}
+          jsonLd={jsonLdBundle(
+            buildArticleJsonLd({
+              origin,
+              path: seoPath,
+              headline: post.title,
+              description: seoDesc,
+              datePublished: post.published_at || post.created_at,
+              dateModified: post.updated_at || post.published_at || post.created_at,
+              image: post.image_url || undefined,
+            }),
+            buildBreadcrumbJsonLd(origin, lang, buildDetailBreadcrumbs('yangiliklar', lang, post.title, seoPath)),
+          )}
+        />
+      )}
       <div className="min-h-screen bg-navy-dark pt-20 pb-16">
         <div className="max-w-3xl mx-auto px-4">
           <Link to="/yangiliklar" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">

@@ -6,9 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getBusiness } from '@/api/client';
 import type { Business } from '@/types/types';
+import { PageSeo } from '@/components/common/PageMeta';
+import {
+  buildBreadcrumbJsonLd,
+  buildDetailBreadcrumbs,
+  getSiteOrigin,
+  jsonLdBundle,
+} from '@/config/seo';
+import { useLang } from '@/contexts/LangContext';
 
 export default function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { lang } = useLang();
   const [biz, setBiz] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -33,8 +42,33 @@ export default function BusinessDetailPage() {
     ? (biz.website.startsWith('http') ? biz.website : `https://${biz.website}`)
     : null;
 
+  const seoPath = id ? `/katalog/${id}` : '/katalog';
+  const seoDesc = biz?.description || `${biz?.name} — UUEA biznes katalogi`;
+  const origin = getSiteOrigin();
+
   return (
     <Layout>
+      {biz && (
+        <PageSeo
+          title={biz.name}
+          description={seoDesc}
+          path={seoPath}
+          image={biz.logo_url || undefined}
+          jsonLd={jsonLdBundle(
+            {
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              name: biz.name,
+              description: biz.description,
+              url: websiteUrl || `${origin}${seoPath}`,
+              telephone: biz.phone,
+              email: biz.email,
+              address: biz.address,
+            },
+            buildBreadcrumbJsonLd(origin, lang, buildDetailBreadcrumbs('katalog', lang, biz.name, seoPath)),
+          )}
+        />
+      )}
       <div className="min-h-screen bg-navy-dark pt-20 pb-16">
         <div className="max-w-3xl mx-auto px-4">
           <Link to="/katalog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">

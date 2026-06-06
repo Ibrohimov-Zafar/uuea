@@ -19,6 +19,7 @@ type API struct {
 	JWTSecret      string
 	StripeKey      string
 	FrontendOrigin string
+	SiteURL        string
 	UploadDir      string
 }
 

@@ -97,7 +97,7 @@ export default function ContactPage() {
                   {
                     icon: <Phone className="w-5 h-5 text-primary shrink-0" />,
                     label: t('phone'),
-                    value: `${SITE.phone}\n${SITE.phoneUz}`,
+                    value: [SITE.phone, SITE.phoneAlt, SITE.phoneUz].filter(Boolean).join('\n'),
                   },
                   {
                     icon: <Mail className="w-5 h-5 text-primary shrink-0" />,

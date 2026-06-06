@@ -12,6 +12,7 @@ type Config struct {
 	UploadDir     string
 	StripeSecret  string
 	FrontendOrigin string
+	SiteURL       string
 }
 
 func Load() Config {
@@ -23,6 +24,7 @@ func Load() Config {
 		UploadDir:      getEnv("UPLOAD_DIR", "./data/uploads"),
 		StripeSecret:   os.Getenv("STRIPE_SECRET_KEY"),
 		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:5173"),
+		SiteURL:        getEnv("SITE_URL", getEnv("FRONTEND_ORIGIN", "http://localhost:5173")),
 	}
 }
 

@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Search, ChevronLeft, ChevronRight, Star, CheckCircle, Play, TrendingUp, Shield, Network, Megaphone, LifeBuoy } from 'lucide-react';
+import { ArrowRight, Search, ChevronLeft, ChevronRight, Star, CheckCircle, Play, TrendingUp, Shield, Network, Megaphone, LifeBuoy, User, Building2 } from 'lucide-react';
 import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { stats, services, membershipPlans, testimonials, events, businesses, partners } from '@/data/mockData';
 import { useLang } from '@/contexts/LangContext';
-import { createHeroLead, sendEmail } from '@/api/client';
+import {
+  createHeroLead, sendEmail,
+  getPartners, getTestimonials, getSiteStats, getSiteServices,
+  getBusinesses, getEvents,
+} from '@/api/client';
+import type { Partner, Testimonial, SiteStat, SiteService, Business, Event } from '@/types/types';
 import { toast } from 'sonner';
 
 // ---- Animated counter ----
@@ -312,14 +316,14 @@ function HeroSection() {
 }
 
 // ---- Statistics Section ----
-function StatsSection() {
+function StatsSection({ stats }: { stats: SiteStat[] }) {
   return (
     <section className="py-16 bg-navy-light border-y border-border/50 relative">
       <div className="absolute inset-0 bg-sacred-geometry opacity-30" />
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((s) => (
-            <StatItem key={s.label} value={s.value} label={s.label} suffix={s.suffix} />
+            <StatItem key={s.id} value={s.value} label={s.label} suffix={s.suffix} />
           ))}
         </div>
       </div>
@@ -328,7 +332,7 @@ function StatsSection() {
 }
 
 // ---- Core Services Section ----
-function ServicesSection() {
+function ServicesSection({ services }: { services: SiteService[] }) {
   return (
     <section className="py-20 bg-background relative bg-sacred-geometry">
       <div className="max-w-7xl mx-auto px-6">
@@ -368,7 +372,9 @@ function ServicesSection() {
 }
 
 // ---- Partners Section ----
-function PartnersSection() {
+function PartnersSection({ partners }: { partners: Partner[] }) {
+  if (partners.length === 0) return null;
+  const doubled = [...partners, ...partners];
   return (
     <section className="py-16 bg-navy-light border-y border-border/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 mb-10">
@@ -376,13 +382,19 @@ function PartnersSection() {
       </div>
       <div className="relative">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">
-          {[...partners, ...partners].map((p, i) => (
-            <div
-              key={i}
+          {doubled.map((p, i) => (
+            <a
+              key={`${p.id}-${i}`}
+              href={p.website || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center min-w-[120px] h-12 px-6 border border-border/60 rounded-sm bg-card/50 text-muted-foreground hover:text-primary hover:border-primary/40 transition-all text-sm font-semibold tracking-wide"
             >
-              {p.name}
-            </div>
+              {p.logo_url
+                ? <img src={p.logo_url} alt={p.name} className="h-6 object-contain" />
+                : p.name
+              }
+            </a>
           ))}
         </div>
       </div>
@@ -390,7 +402,7 @@ function PartnersSection() {
   );
 }
 
-type HomeEvent = (typeof events)[number];
+type HomeEvent = Event;
 
 function useCarouselVisible() {
   const [visible, setVisible] = useState(1);
@@ -416,19 +428,23 @@ function useCarouselVisible() {
 }
 
 function EventCard({ ev, registerLabel }: { ev: HomeEvent; registerLabel: string }) {
+  const price = ev.price_usd === 0 ? "Bepul a'zolarga" : `$${ev.price_usd}`;
   return (
     <div className="glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group flex flex-col h-full">
       <div className="aspect-[16/9] bg-muted relative overflow-hidden shrink-0">
-        <img src={ev.image} alt={ev.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
+        {ev.image_url
+          ? <img src={ev.image_url} alt={ev.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
+          : <div className="w-full h-full bg-primary/10 flex items-center justify-center"><span className="text-primary/40 text-4xl font-bold">{ev.category[0]}</span></div>
+        }
         <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-sm max-w-[70%] truncate">
           {ev.category}
         </div>
         <div className="absolute bottom-3 right-3 glass-card border-ancient rounded-sm px-3 py-1.5 text-xs text-primary font-semibold max-w-[45%] truncate text-right">
-          {ev.price}
+          {price}
         </div>
       </div>
       <div className="p-4 sm:p-5 space-y-2 sm:space-y-3 flex flex-col flex-1">
-        <div className="text-primary text-xs tracking-wider">{ev.date} — {ev.time}</div>
+        <div className="text-primary text-xs tracking-wider">{ev.event_date} — {ev.event_time}</div>
         <h3 className="font-jiang-cheng text-foreground font-bold text-base sm:text-sm leading-snug text-balance">{ev.title}</h3>
         <p className="text-muted-foreground text-sm sm:text-xs leading-relaxed text-pretty line-clamp-3 sm:line-clamp-2 flex-1">{ev.description}</p>
         <div className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -450,7 +466,7 @@ function EventCard({ ev, registerLabel }: { ev: HomeEvent; registerLabel: string
 }
 
 // ---- Events Section ----
-function EventsSection() {
+function EventsSection({ events }: { events: Event[] }) {
   const { t } = useLang();
   const [active, setActive] = useState(0);
   const visible = useCarouselVisible();
@@ -530,7 +546,7 @@ function EventsSection() {
 }
 
 // ---- Directory Preview ----
-function DirectoryPreview() {
+function DirectoryPreview({ businesses }: { businesses: Business[] }) {
   const [query, setQuery] = useState('');
   const filtered = businesses.filter(b =>
     b.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -557,11 +573,14 @@ function DirectoryPreview() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {filtered.map((biz) => (
             <div key={biz.id} className="glass-card border-ancient rounded-sm p-5 space-y-3 hover-gold-glow relative group">
-              {biz.vip && (
+              {biz.is_vip && (
                 <div className="absolute top-3 right-3 vip-badge">VIP</div>
               )}
-              <div className="w-12 h-12 bg-primary/15 border border-primary/20 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-lg">
-                {biz.logo}
+              <div className="w-12 h-12 bg-primary/15 border border-primary/20 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-lg overflow-hidden">
+                {biz.logo_url
+                  ? <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                  : biz.name.slice(0, 2).toUpperCase()
+                }
               </div>
               <div>
                 <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance">{biz.name}</h4>
@@ -589,54 +608,57 @@ function DirectoryPreview() {
 
 // ---- Membership Plans ----
 function MembershipSection() {
+  const { t } = useLang();
+  const tiers = [
+    {
+      href: '/azolik',
+      icon: <User className="w-8 h-8 text-primary" />,
+      title: t('homeMembershipIndividual'),
+      desc: t('homeMembershipIndividualDesc'),
+      plans: 'Starter · Business',
+    },
+    {
+      href: '/korporativ',
+      icon: <Building2 className="w-8 h-8 text-primary" />,
+      title: t('homeMembershipCorporate'),
+      desc: t('homeMembershipCorporateDesc'),
+      plans: 'Corporate · International',
+    },
+  ];
+
   return (
-    <section className="py-20 bg-background bg-sacred-geometry">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 sm:py-20 bg-background bg-sacred-geometry">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <SectionHeading
-          subtitle="A'zolik"
-          title="A'zolik Rejalari"
-          description="Biznesingiz hajmiga mos reja tanlang va UUEA a'zolik imtiyozlaridan to'liq foydalaning."
+          subtitle={t('membershipBadge')}
+          title={t('homeMembershipSplitTitle')}
+          description={t('homeMembershipSplitSub')}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {membershipPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className={cn(
-                "glass-card rounded-sm p-6 space-y-5 flex flex-col h-full border-ancient hover-gold-glow",
-                plan.popular ? "border border-primary/60 shadow-gold relative" : "border border-border/60"
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {tiers.map((tier) => (
+            <Link
+              key={tier.href}
+              to={tier.href}
+              className="glass-card border-ancient rounded-sm p-6 sm:p-8 space-y-5 hover-gold-glow group flex flex-col h-full"
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 vip-badge text-[10px] px-4">Mashhur</div>
-              )}
-              <div>
-                <h3 className="font-jiang-cheng text-foreground text-base font-bold">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-primary font-jiang-cheng text-3xl font-bold">${plan.price}</span>
-                  <span className="text-muted-foreground text-xs">/{plan.period}</span>
-                </div>
+              <div className="w-14 h-14 bg-primary/10 border border-primary/30 rounded-sm flex items-center justify-center">
+                {tier.icon}
               </div>
-              <ul className="space-y-2.5 flex-1">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/qoshilish" className="mt-auto">
-                <Button
-                  className={cn(
-                    "w-full rounded-sm text-sm",
-                    plan.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-accent hover:bg-accent/80 text-foreground border border-border"
-                  )}
-                >
-                  {plan.cta}
-                </Button>
-              </Link>
-            </div>
+              <div className="space-y-2 flex-1">
+                <h3 className="font-jiang-cheng text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  {tier.title}
+                </h3>
+                <p className="text-primary text-xs font-semibold tracking-wider">{tier.plans}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{tier.desc}</p>
+              </div>
+              <Button
+                variant="ghost"
+                className="w-full border border-primary/40 text-primary hover:bg-primary/10 rounded-sm mt-auto pointer-events-none"
+              >
+                {t('learnMore')}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           ))}
         </div>
       </div>
@@ -645,8 +667,11 @@ function MembershipSection() {
 }
 
 // ---- Testimonials ----
-function TestimonialsSection() {
+function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
   const [active, setActive] = useState(0);
+
+  if (testimonials.length === 0) return null;
+  const cur = testimonials[Math.min(active, testimonials.length - 1)];
 
   return (
     <section className="py-20 bg-navy-light border-y border-border/50 bg-sacred-geometry">
@@ -655,21 +680,21 @@ function TestimonialsSection() {
         <div className="max-w-3xl mx-auto">
           <div className="glass-card border-ancient rounded-sm p-8 md:p-12 text-center relative card-ancient">
             <div className="flex justify-center mb-2">
-              {[...Array(testimonials[active].rating)].map((_, i) => (
+              {[...Array(cur.rating)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 text-primary fill-primary" />
               ))}
             </div>
             <blockquote className="text-foreground text-base md:text-lg leading-relaxed mb-8 text-pretty">
-              "{testimonials[active].review}"
+              "{cur.review}"
             </blockquote>
             <div className="flex items-center justify-center gap-4">
               <div className="w-12 h-12 bg-primary/20 border border-primary/30 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold">
-                {testimonials[active].avatar}
+                {cur.avatar || cur.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="text-left">
-                <div className="font-jiang-cheng text-foreground font-bold text-sm">{testimonials[active].name}</div>
-                <div className="text-primary text-xs">{testimonials[active].role}</div>
-                <div className="text-muted-foreground text-xs">{testimonials[active].company}</div>
+                <div className="font-jiang-cheng text-foreground font-bold text-sm">{cur.name}</div>
+                <div className="text-primary text-xs">{cur.role}</div>
+                <div className="text-muted-foreground text-xs">{cur.company}</div>
               </div>
             </div>
           </div>
@@ -693,6 +718,33 @@ function TestimonialsSection() {
 
 // ---- Newsletter ----
 function NewsletterSection() {
+  const { t } = useLang();
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email.trim() || !/^[^@]+@[^@]+[.][^@]+$/.test(email)) {
+      toast.error(t('validEmail'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createHeroLead(email.trim(), 'newsletter_footer');
+      sendEmail({
+        type: 'hero_lead_confirmation',
+        to: email.trim(),
+        name: email.trim().split('@')[0],
+        siteUrl: window.location.origin,
+      }).catch(() => { /* silent */ });
+      toast.success(t('heroLeadSuccess'));
+      setEmail('');
+    } catch {
+      toast.error(t('tryAgain'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <section className="py-20 bg-navy-dark relative overflow-hidden">
       <div className="absolute inset-0 bg-sacred-geometry opacity-40" />
@@ -703,13 +755,23 @@ function NewsletterSection() {
           title="Yangiliklar va Tadbirlardan Xabardor Bo'ling"
           description="Haftalik yangiliklar, biznes maslahatlar va tadbirlar haqida birinchi bo'lib xabar oling."
         />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input placeholder="Ismingiz" className="bg-card border-border/60 rounded-sm text-sm" />
-          <Input placeholder="Familiyangiz" className="bg-card border-border/60 rounded-sm text-sm" />
-          <Input placeholder="Email manzilingiz" type="email" className="bg-card border-border/60 rounded-sm text-sm" />
+        <div className="max-w-md mx-auto">
+          <Input
+            placeholder="Email manzilingiz"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSubscribe()}
+            className="bg-card border-border/60 rounded-sm text-sm"
+          />
         </div>
-        <Button type="button" onClick={() => {}} className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-10 text-sm">
-          Obuna Bo'lish
+        <Button
+          type="button"
+          disabled={submitting}
+          onClick={handleSubscribe}
+          className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-10 text-sm"
+        >
+          {submitting ? '...' : "Obuna Bo'lish"}
         </Button>
       </div>
     </section>
@@ -718,16 +780,32 @@ function NewsletterSection() {
 
 // ---- Main Page ----
 export default function HomePage() {
+  const [stats, setStats] = useState<SiteStat[]>([]);
+  const [services, setServices] = useState<SiteService[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    getSiteStats().then(setStats).catch(() => {});
+    getSiteServices().then(setServices).catch(() => {});
+    getPartners().then(setPartners).catch(() => {});
+    getEvents(true).then(setEvents).catch(() => {});
+    getBusinesses({ limit: 8, sort: 'vip' }).then(setBusinesses).catch(() => {});
+    getTestimonials().then(setTestimonials).catch(() => {});
+  }, []);
+
   return (
     <Layout>
       <HeroSection />
-      <StatsSection />
-      <ServicesSection />
-      <PartnersSection />
-      <EventsSection />
-      <DirectoryPreview />
+      <StatsSection stats={stats} />
+      <ServicesSection services={services} />
+      <PartnersSection partners={partners} />
+      <EventsSection events={events} />
+      <DirectoryPreview businesses={businesses} />
       <MembershipSection />
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
       <NewsletterSection />
     </Layout>
   );

@@ -1,4 +1,47 @@
 export type UserRole = 'user' | 'admin' | 'super_admin' | 'business_owner';
+
+export interface Partner {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  website: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  company: string;
+  role: string;
+  review: string;
+  avatar: string;
+  rating: number;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface SiteStat {
+  id: string;
+  label: string;
+  value: number;
+  suffix: string;
+  sort_order: number;
+  updated_at: string;
+}
+
+export interface SiteService {
+  id: string;
+  icon: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  sort_order: number;
+  created_at: string;
+}
 export type MembershipPlan = 'starter' | 'business' | 'corporate' | 'international';
 export type MembershipStatus = 'active' | 'inactive' | 'pending' | 'cancelled';
 export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'refunded';
@@ -15,6 +58,24 @@ export interface Notification {
   link: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+export type LegalResourceStatus = 'published' | 'draft';
+export type LegalResourceType = 'law' | 'decree' | 'business_news' | 'legal_info';
+
+export interface LegalResource {
+  id: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  category: string;
+  resource_type: LegalResourceType;
+  source: string;
+  published_date: string;
+  is_featured: boolean | number;
+  status: LegalResourceStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface NewsPost {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import PageMeta from '@/components/common/PageMeta';
+import { PageSeo } from '@/components/common/PageMeta';
 import { useLang } from '@/contexts/LangContext';
 
 export default function NotFound() {
@@ -7,7 +7,7 @@ export default function NotFound() {
 
   return (
     <>
-      <PageMeta title={t('notFoundTitle')} description={t('notFoundSub')} />
+      <PageSeo title={t('notFoundTitle')} description={t('notFoundSub')} noindex />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1 bg-navy-dark">
         <div className="mx-auto w-full max-w-[242px] text-center sm:max-w-[472px]">
           <h1 className="mb-8 font-jiang-cheng font-bold text-foreground text-title-md xl:text-title-2xl">

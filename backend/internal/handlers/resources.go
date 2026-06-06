@@ -246,17 +246,22 @@ func (a *API) CreateContactMessage(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) CreateHeroLead(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Email string `json:"email"`
+		Email  string `json:"email"`
+		Source string `json:"source"`
 	}
 	if err := readJSON(r, &body); err != nil || body.Email == "" {
 		errJSON(w, http.StatusBadRequest, "invalid_input")
 		return
 	}
+	source := strings.TrimSpace(body.Source)
+	if source == "" {
+		source = "hero_form"
+	}
 	id := uuid.NewString()
 	token := uuid.NewString()
 	now := time.Now().UTC().Format(time.RFC3339)
 	_, err := a.DB.Exec(`INSERT INTO hero_leads (id, email, unsubscribe_token, source, created_at) VALUES (?,?,?,?,?)`,
-		id, strings.TrimSpace(body.Email), token, "hero_form", now)
+		id, strings.TrimSpace(body.Email), token, source, now)
 	if err != nil {
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return

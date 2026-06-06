@@ -92,6 +92,56 @@
     --shadow-gold: 0 0 24px hsla(44, 64%, 52%, 0.4), 0 0 8px hsla(44, 64%, 52%, 0.2);
     --shadow-deep: 0 16px 48px hsla(214, 80%, 3%, 0.9);
   }
+
+  /* Light mode overrides */
+  .light {
+    --background: 210 40% 97%;
+    --foreground: 214 72% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 214 72% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 72% 10%;
+
+    --primary: 44 64% 44%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 30% 88%;
+    --secondary-foreground: 214 72% 15%;
+
+    --muted: 214 25% 90%;
+    --muted-foreground: 214 30% 42%;
+
+    --accent: 214 25% 92%;
+    --accent-foreground: 214 72% 15%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 25% 82%;
+    --input: 214 25% 88%;
+    --ring: 44 64% 44%;
+
+    --navy: 214 72% 92%;
+    --navy-light: 214 60% 95%;
+    --navy-dark: 214 40% 88%;
+
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 214 72% 15%;
+    --sidebar-primary: 44 64% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 25% 90%;
+    --sidebar-accent-foreground: 214 72% 15%;
+    --sidebar-border: 214 25% 82%;
+    --sidebar-ring: 44 64% 44%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(210, 40%, 97%) 0%, hsl(214, 30%, 93%) 50%, hsl(210, 40%, 97%) 100%);
+    --shadow-card: 0 4px 24px hsla(214, 30%, 60%, 0.15), 0 1px 4px hsla(214, 30%, 60%, 0.1);
+    --shadow-hover: 0 8px 32px hsla(214, 30%, 60%, 0.2), 0 2px 8px hsla(44, 64%, 44%, 0.15);
+    --shadow-gold: 0 0 24px hsla(44, 64%, 44%, 0.25), 0 0 8px hsla(44, 64%, 44%, 0.15);
+    --shadow-deep: 0 16px 48px hsla(214, 30%, 50%, 0.15);
+  }
 }
 
 @layer base {
@@ -114,7 +164,6 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-    background-color: hsl(214, 72%, 6%);
   }
 
   h1, h2, h3, h4, h5 {
@@ -173,6 +222,11 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid hsla(44, 64%, 52%, 0.15);
+  }
+
+  .light .glass-card {
+    background: hsla(0, 0%, 100%, 0.85);
+    border: 1px solid hsla(44, 64%, 44%, 0.2);
   }
 
   /* Gold line decoration */

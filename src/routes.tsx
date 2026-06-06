@@ -3,6 +3,9 @@ import HomePage from './pages/HomePage';
 import WhoWeArePage from './pages/WhoWeArePage';
 import ServicesPage from './pages/ServicesPage';
 import MembershipPage from './pages/MembershipPage';
+import CorporateMembershipPage from './pages/CorporateMembershipPage';
+import LawsPage from './pages/LawsPage';
+import LawDetailPage from './pages/LawDetailPage';
 import DirectoryPage from './pages/DirectoryPage';
 import BusinessDetailPage from './pages/BusinessDetailPage';
 import EventsPage from './pages/EventsPage';
@@ -17,6 +20,7 @@ import AdminPage from './pages/AdminPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import EventPaymentSuccessPage from './pages/EventPaymentSuccessPage';
 import UnsubscribePage from './pages/UnsubscribePage';
+import NotFound from './pages/NotFound';
 
 export interface RouteConfig {
   name: string;
@@ -31,6 +35,9 @@ export const routes: RouteConfig[] = [
   { name: 'Biz Haqimizda',          path: '/biz-haqimizda', element: <WhoWeArePage />,      public: true },
   { name: 'Xizmatlar',              path: '/xizmatlar',     element: <ServicesPage />,      public: true },
   { name: "A'zolik",                path: '/azolik',        element: <MembershipPage />,    public: true },
+  { name: 'Korporativ A\'zolik',    path: '/korporativ',    element: <CorporateMembershipPage />, public: true },
+  { name: 'Qonunlar va Qarorlar',   path: '/qonunlar',      element: <LawsPage />,          public: true },
+  { name: 'Huquqiy ma\'lumot',      path: '/qonunlar/:id',  element: <LawDetailPage />,     public: true },
   { name: 'Katalog',                path: '/katalog',       element: <DirectoryPage />,     public: true },
   { name: 'Biznes',                 path: '/katalog/:id',   element: <BusinessDetailPage />, public: true },
   { name: 'Tadbirlar',              path: '/tadbirlar',     element: <EventsPage />,        public: true },
@@ -45,4 +52,5 @@ export const routes: RouteConfig[] = [
   { name: "To'lov Muvaffaqiyatli",  path: '/payment-success', element: <PaymentSuccessPage />, public: true },
   { name: "Tadbir to'lovi",         path: '/event-payment-success', element: <EventPaymentSuccessPage />, public: true },
   { name: "Obunadan Chiqish",       path: '/unsubscribe',     element: <UnsubscribePage />,    public: true },
+  { name: '404',                    path: '*',                element: <NotFound />,           public: true },
 ];

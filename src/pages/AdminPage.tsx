@@ -7,7 +7,7 @@ import {
   ShieldCheck, CheckCircle2, XCircle, RefreshCw, Save,
   BarChart2, CheckCircle, AlertCircle, Clock, Download, FileSpreadsheet,
   Bell, Send, MapPin, Filter, ChevronDown as ChevronDownIcon, Mail,
-  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard, MessageSquare
+  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard, MessageSquare, Scale, ClipboardList
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -56,6 +56,8 @@ import {
   sendEmail,
 } from '@/api/client';
 import ContactMessagesSection from '@/pages/admin/ContactMessagesSection';
+import MembershipApplicationsSection from '@/pages/admin/MembershipApplicationsSection';
+import LegalAdminSection from '@/pages/admin/LegalAdminSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang } from '@/contexts/LangContext';
 import { toast } from 'sonner';
@@ -74,7 +76,9 @@ type Section =
   | 'leads'
   | 'campaigns'
   | 'contact'
+  | 'applications'
   | 'news'
+  | 'legal'
   | 'plans';
 
 interface Stats {
@@ -267,11 +271,13 @@ export default function AdminPage() {
     { id: 'notifications', label: 'Bildirishnomalar',         icon: <Bell className="w-4 h-4" /> },
     { id: 'leads',          label: 'Email Obunalar',           icon: <Mail className="w-4 h-4" /> },
     { id: 'contact',        label: 'Aloqa Xabarlari',          icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'applications',   label: "A'zolik Arizalari",        icon: <ClipboardList className="w-4 h-4" /> },
     { id: 'campaigns',      label: 'Kampaniyalar',             icon: <Megaphone className="w-4 h-4" /> },
   ];
 
   // Regular admin should also be able to manage news and events.
   navItems.push({ id: 'news', label: 'Yangiliklar', icon: <Newspaper className="w-4 h-4" /> });
+  navItems.push({ id: 'legal', label: 'Qonunlar va Qarorlar', icon: <Scale className="w-4 h-4" /> });
   // Only super-admin can manage membership plans / payments-related configuration.
   if (isSuperAdmin) navItems.push({ id: 'plans', label: "A'zolik Rejalari", icon: <CreditCard className="w-4 h-4" /> });
 
@@ -377,8 +383,10 @@ export default function AdminPage() {
           {section === 'notifications' && <NotificationsSection />}
           {section === 'leads'         && <LeadsSection />}
           {section === 'contact'       && <ContactMessagesSection />}
+          {section === 'applications'  && <MembershipApplicationsSection />}
           {section === 'campaigns'     && <CampaignsSection />}
           {section === 'news'          && <NewsAdminSection />}
+          {section === 'legal'         && <LegalAdminSection />}
           {section === 'plans'         && <PlansAdminSection />}
         </div>
       </div>

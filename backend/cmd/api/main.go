@@ -54,6 +54,7 @@ func main() {
 		JWTSecret:      cfg.JWTSecret,
 		StripeKey:      cfg.StripeSecret,
 		FrontendOrigin: cfg.FrontendOrigin,
+		SiteURL:        cfg.SiteURL,
 		UploadDir:      uploadDir,
 	}
 
@@ -78,6 +79,7 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"ok":true}`))
 	})
+	r.Get("/sitemap.xml", api.Sitemap)
 	r.Handle("/uploads/*", handlers.UploadsFileServer(uploadDir))
 
 	auth := middleware.Auth(cfg.JWTSecret)
@@ -118,6 +120,12 @@ func main() {
 	r.Get("/events/spots", api.GetEvent)
 	r.Get("/news", api.ListNews)
 	r.Get("/news/detail", api.GetNews)
+	r.Get("/legal-resources", api.ListLegalResources)
+	r.Get("/legal-resources/detail", api.GetLegalResource)
+	r.Get("/partners", api.ListPartners)
+	r.Get("/testimonials", api.ListTestimonials)
+	r.Get("/site-stats", api.ListSiteStats)
+	r.Get("/site-services", api.ListSiteServices)
 	r.Post("/hero-leads", api.CreateHeroLead)
 	r.Post("/contact-messages", api.CreateContactMessage)
 	r.Post("/hero-leads/unsubscribe", api.UnsubscribeLead)
@@ -142,6 +150,9 @@ func main() {
 		ar.Get("/admin/news", api.AdminListNews)
 		ar.Post("/admin/news/review", api.AdminReviewNews)
 		ar.Delete("/admin/news", api.AdminDeleteNews)
+		ar.Get("/admin/legal-resources", api.AdminListLegalResources)
+		ar.Post("/admin/legal-resources", api.AdminUpsertLegalResource)
+		ar.Delete("/admin/legal-resources", api.AdminDeleteLegalResource)
 		ar.Get("/admin/hero-leads", api.AdminHeroLeads)
 		ar.Delete("/admin/hero-leads", api.AdminDeleteHeroLead)
 		ar.Post("/admin/hero-leads/import", api.AdminImportHeroLeads)
@@ -151,6 +162,14 @@ func main() {
 		ar.Post("/admin/campaigns/cancel", api.AdminCancelCampaign)
 		ar.Get("/admin/memberships", api.AdminMembershipsForUsers)
 		ar.Post("/admin/update", api.GenericUpdate)
+		ar.Post("/admin/partners", api.AdminUpsertPartner)
+		ar.Delete("/admin/partners", api.AdminDeletePartner)
+		ar.Post("/admin/testimonials", api.AdminUpsertTestimonial)
+		ar.Delete("/admin/testimonials", api.AdminDeleteTestimonial)
+		ar.Post("/admin/site-stats", api.AdminUpsertSiteStat)
+		ar.Delete("/admin/site-stats", api.AdminDeleteSiteStat)
+		ar.Post("/admin/site-services", api.AdminUpsertSiteService)
+		ar.Delete("/admin/site-services", api.AdminDeleteSiteService)
 	})
 
 	// Super admin only (role/user management)

@@ -9,6 +9,11 @@ import type {
   EventRegistration,
   Order,
   NewsPost,
+  LegalResource,
+  Partner,
+  Testimonial,
+  SiteStat,
+  SiteService,
 } from '@/types/types';
 
 /** Dashboard business submission row */
@@ -80,6 +85,43 @@ export async function getNews(): Promise<NewsPost[]> {
   return asArray(data);
 }
 
+export async function getLegalResources(): Promise<LegalResource[]> {
+  const { data } = await http.get<LegalResource[]>('/legal-resources');
+  return asArray(data);
+}
+
+export async function getLegalResource(id: string): Promise<LegalResource> {
+  const { data } = await http.get<LegalResource>('/legal-resources/detail', { params: { id } });
+  return data;
+}
+
+export async function adminListLegalResources(): Promise<LegalResource[]> {
+  const { data } = await http.get<LegalResource[]>('/admin/legal-resources');
+  return asArray(data);
+}
+
+export type LegalResourcePayload = {
+  id?: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  category: string;
+  resource_type: string;
+  source: string;
+  published_date: string;
+  is_featured?: boolean;
+  status?: 'published' | 'draft';
+};
+
+export async function adminUpsertLegalResource(body: LegalResourcePayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/legal-resources', body);
+  return data;
+}
+
+export async function adminDeleteLegalResource(id: string): Promise<void> {
+  await http.delete('/admin/legal-resources', { params: { id } });
+}
+
 export async function createNews(body: Pick<NewsPost, 'title' | 'body'> & Partial<Pick<NewsPost, 'excerpt' | 'category' | 'image_url'>>): Promise<{ id: string }> {
   const { data } = await http.post<{ id: string }>('/news', body);
   return data;
@@ -107,8 +149,15 @@ export async function deleteNotification(id: string): Promise<void> {
   await http.delete(`/notifications/${id}`);
 }
 
-export async function createHeroLead(email: string): Promise<{ id: string }> {
-  const { data } = await http.post<{ id: string }>('/hero-leads', { email });
+export async function createHeroLead(email: string, source = 'hero_form'): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/hero-leads', { email, source });
+  return data;
+}
+
+export async function adminMembershipApplications(): Promise<Record<string, unknown>[]> {
+  const { data } = await http.get<Record<string, unknown>[]>('/admin/list', {
+    params: { table: 'membership_applications', limit: 500 },
+  });
   return data;
 }
 
@@ -302,6 +351,66 @@ export async function adminDeleteHeroLead(id: string): Promise<void> {
 
 export async function adminImportHeroLeads(leads: { email: string }[]): Promise<void> {
   await http.post('/admin/hero-leads/import', { leads });
+}
+
+// ─── Homepage public data ─────────────────────────────────────────────────────
+
+export async function getPartners(): Promise<Partner[]> {
+  const { data } = await http.get<Partner[]>('/partners');
+  return asArray(data);
+}
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+  const { data } = await http.get<Testimonial[]>('/testimonials');
+  return asArray(data);
+}
+
+export async function getSiteStats(): Promise<SiteStat[]> {
+  const { data } = await http.get<SiteStat[]>('/site-stats');
+  return asArray(data);
+}
+
+export async function getSiteServices(): Promise<SiteService[]> {
+  const { data } = await http.get<SiteService[]>('/site-services');
+  return asArray(data);
+}
+
+// ─── Homepage admin ───────────────────────────────────────────────────────────
+
+export type PartnerPayload = { id?: string; name: string; logo_url?: string; website?: string; sort_order?: number; is_active?: boolean };
+export async function adminUpsertPartner(body: PartnerPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/partners', body);
+  return data;
+}
+export async function adminDeletePartner(id: string): Promise<void> {
+  await http.delete('/admin/partners', { params: { id } });
+}
+
+export type TestimonialPayload = { id?: string; name: string; company: string; role: string; review: string; avatar?: string; rating?: number; sort_order?: number; is_active?: boolean };
+export async function adminUpsertTestimonial(body: TestimonialPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/testimonials', body);
+  return data;
+}
+export async function adminDeleteTestimonial(id: string): Promise<void> {
+  await http.delete('/admin/testimonials', { params: { id } });
+}
+
+export type SiteStatPayload = { id?: string; label: string; value: number; suffix?: string; sort_order?: number };
+export async function adminUpsertSiteStat(body: SiteStatPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/site-stats', body);
+  return data;
+}
+export async function adminDeleteSiteStat(id: string): Promise<void> {
+  await http.delete('/admin/site-stats', { params: { id } });
+}
+
+export type SiteServicePayload = { id?: string; icon?: string; title: string; subtitle: string; description: string; features?: string[]; sort_order?: number; is_active?: boolean };
+export async function adminUpsertSiteService(body: SiteServicePayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/site-services', body);
+  return data;
+}
+export async function adminDeleteSiteService(id: string): Promise<void> {
+  await http.delete('/admin/site-services', { params: { id } });
 }
 
 export async function adminCampaigns(): Promise<Record<string, unknown>[]> {

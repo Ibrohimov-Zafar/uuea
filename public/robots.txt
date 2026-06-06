@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /kirish
+Disallow: /royxat
+Disallow: /payment-success
+Disallow: /event-payment-success
+Disallow: /unsubscribe
+
+Sitemap: https://www.usa-entrepreneurs.com/sitemap.xml
