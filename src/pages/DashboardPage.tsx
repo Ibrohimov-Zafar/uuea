@@ -5,7 +5,8 @@ import {
   Settings, MessageSquare, LogOut, Menu, X, ChevronRight,
   Star, CheckCircle, AlertCircle, Clock, Plus, Upload,
   User, Bell, Globe, ExternalLink, Send,
-  BadgeCheck, ShieldOff, Building, Phone, Mail, Download, ShieldCheck
+  BadgeCheck, ShieldOff, Building, Phone, Mail, Download, ShieldCheck,
+  Megaphone, Eye, MousePointer, BarChart2, CalendarClock, RefreshCw, XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,9 @@ import {
   adminStats,
   adminList,
   adminListNews,
+  adminCampaigns,
+  adminCreateCampaign,
+  adminCancelCampaign,
   type BusinessSubmissionRow,
   type EventRegistrationWithEvent,
   updateProfile,
@@ -42,7 +46,7 @@ import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import type { Membership, MembershipPlanRow } from '@/types/types';
 
-type Section = 'overview' | 'membership' | 'events' | 'catalog' | 'messages' | 'billing' | 'settings' | 'business' | 'cards';
+type Section = 'overview' | 'membership' | 'events' | 'catalog' | 'messages' | 'billing' | 'settings' | 'business' | 'cards' | 'campaigns';
 
 interface Order { id: string; total_amount: number; status: string; created_at: string; items: unknown; customer_name: string | null; customer_email: string | null; stripe_payment_intent_id: string | null }
 type BusinessSubmission = BusinessSubmissionRow;
@@ -54,15 +58,16 @@ const LANGS: { code: Lang; label: string }[] = [
 ];
 
 const NAV_ITEMS = [
-  { id: 'overview',    icon: LayoutDashboard, key: 'overview' as const },
-  { id: 'membership',  icon: Star,            key: 'membershipLabel' as const },
-  { id: 'events',      icon: Calendar,        key: 'eventsLabel' as const },
-  { id: 'catalog',     icon: Building,        key: 'catalogProfile' as const },
-  { id: 'business',    icon: Building2,       key: 'businessSubmission' as const },
-  { id: 'billing',     icon: CreditCard,      key: 'billing' as const },
-  { id: 'cards',       icon: BadgeCheck,      key: 'savedCards' as const },
-  { id: 'messages',    icon: MessageSquare,   key: 'messages' as const },
-  { id: 'settings',    icon: Settings,        key: 'settings' as const },
+  { id: 'overview',    icon: LayoutDashboard, key: 'overview' as const,          adminOnly: false },
+  { id: 'membership',  icon: Star,            key: 'membershipLabel' as const,   adminOnly: false },
+  { id: 'events',      icon: Calendar,        key: 'eventsLabel' as const,       adminOnly: false },
+  { id: 'catalog',     icon: Building,        key: 'catalogProfile' as const,    adminOnly: false },
+  { id: 'business',    icon: Building2,       key: 'businessSubmission' as const, adminOnly: false },
+  { id: 'billing',     icon: CreditCard,      key: 'billing' as const,           adminOnly: false },
+  { id: 'cards',       icon: BadgeCheck,      key: 'savedCards' as const,        adminOnly: false },
+  { id: 'campaigns',   icon: Megaphone,       key: 'campaigns' as const,         adminOnly: true  },
+  { id: 'messages',    icon: MessageSquare,   key: 'messages' as const,          adminOnly: false },
+  { id: 'settings',    icon: Settings,        key: 'settings' as const,          adminOnly: false },
 ] as const;
 
 export default function DashboardPage() {
@@ -230,7 +235,7 @@ export default function DashboardPage() {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => (
             <button key={item.id} onClick={() => goTo(item.id as Section)}
               className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm transition-all text-left',
                 section === item.id
@@ -239,6 +244,9 @@ export default function DashboardPage() {
               )}>
               <item.icon className="w-4 h-4 shrink-0" />
               {t(item.key)}
+              {item.adminOnly && (
+                <span className="ml-1 text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded-sm font-semibold">ADM</span>
+              )}
               {section === item.id && <ChevronRight className="w-3 h-3 ml-auto" />}
             </button>
           ))}
@@ -285,7 +293,7 @@ export default function DashboardPage() {
               ))}
             </div>
             <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-              {NAV_ITEMS.map(item => (
+              {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => (
                 <button key={item.id} onClick={() => goTo(item.id as Section)}
                   className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm transition-all text-left',
                     section === item.id ? 'bg-sidebar-accent text-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent'
@@ -358,6 +366,7 @@ export default function DashboardPage() {
           {section === 'business'  && <BusinessSection userId={user.id} />}
           {section === 'billing'   && <BillingSection userId={user.id} />}
           {section === 'cards'     && <SavedCardsSection userId={user.id} />}
+          {section === 'campaigns' && isAdmin && <CampaignsDashSection />}
           {section === 'messages'  && <MessagesSection />}
           {section === 'settings'  && <SettingsSection profile={profile} onSaved={refreshProfile} />}
         </div>
@@ -1009,6 +1018,326 @@ function SavedCardsSection({ userId }: { userId: string }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Campaign types ──────────────────────────────────────────────────────────
+type Campaign = {
+  id: string; subject: string; body: string;
+  scheduled_at: string; status: 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled';
+  target_source: string; sent_count: number; fail_count: number; created_at: string;
+  open_count?: number; click_count?: number;
+};
+
+const CAMP_STATUS_COLORS: Record<string, string> = {
+  scheduled: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+  sending:   'bg-amber-500/10 border-amber-500/30 text-amber-400',
+  sent:      'bg-primary/10 border-primary/30 text-primary',
+  failed:    'bg-destructive/10 border-destructive/30 text-destructive',
+  cancelled: 'bg-muted/30 border-border/30 text-muted-foreground',
+};
+const CAMP_STATUS_LABELS: Record<string, string> = {
+  scheduled: 'Rejalashtirilgan', sending: 'Yuborilmoqda',
+  sent: 'Yuborildi', failed: 'Xatolik', cancelled: 'Bekor qilindi',
+};
+
+/* ── CAMPAIGNS (admin only) ── */
+function CampaignsDashSection() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [showForm, setShowForm]   = useState(false);
+  const [cancelId, setCancelId]   = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [selected, setSelected]   = useState<Campaign | null>(null);
+  const [subject, setSubject]     = useState('');
+  const [body, setBody]           = useState('');
+  const [schedDate, setSchedDate] = useState('');
+  const [schedTime, setSchedTime] = useState('');
+  const [targetSrc, setTargetSrc] = useState('all');
+  const [saving, setSaving]       = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminCampaigns();
+      setCampaigns(data as Campaign[]);
+    } catch {
+      setCampaigns([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const id = window.setInterval(load, 30000);
+    return () => window.clearInterval(id);
+  }, [load]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject.trim() || !body.trim() || !schedDate || !schedTime) {
+      toast.error("Barcha maydonlar to'ldirilishi shart"); return;
+    }
+    setSaving(true);
+    try {
+      await adminCreateCampaign({
+        subject: subject.trim(), body: body.trim(),
+        scheduled_at: new Date(`${schedDate}T${schedTime}`).toISOString(),
+        target_source: targetSrc,
+      });
+      toast.success('Kampaniya rejalashtirildi');
+      setShowForm(false);
+      setSubject(''); setBody(''); setSchedDate(''); setSchedTime(''); setTargetSrc('all');
+      load();
+    } catch {
+      toast.error('Xatolik yuz berdi');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancelId) return;
+    setCancelling(true);
+    await adminCancelCampaign(cancelId);
+    setCancelling(false);
+    setCancelId(null);
+    toast.success('Kampaniya bekor qilindi');
+    load();
+  };
+
+  const totalSent   = campaigns.reduce((s, c) => s + (c.sent_count  || 0), 0);
+  const totalOpens  = campaigns.reduce((s, c) => s + (c.open_count  || 0), 0);
+  const totalClicks = campaigns.reduce((s, c) => s + (c.click_count || 0), 0);
+  const openRate    = totalSent > 0 ? Math.round((totalOpens / totalSent) * 100) : 0;
+
+  return (
+    <div className="space-y-5">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Yuborilgan',  value: totalSent,    icon: <Send className="w-4 h-4" /> },
+          { label: 'Ochilgan',    value: totalOpens,   icon: <Eye className="w-4 h-4" /> },
+          { label: 'Bosilgan',    value: totalClicks,  icon: <MousePointer className="w-4 h-4" /> },
+          { label: 'Open Rate',   value: `${openRate}%`, icon: <BarChart2 className="w-4 h-4" /> },
+        ].map(s => (
+          <div key={s.label} className="glass-card border-ancient rounded-sm p-4 card-ancient">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</span>
+              <span className="text-primary">{s.icon}</span>
+            </div>
+            <div className="font-jiang-cheng text-2xl font-bold text-foreground">{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="font-jiang-cheng text-foreground text-xl font-bold flex items-center gap-2">
+          <Megaphone className="w-5 h-5 text-primary" />
+          Email Kampaniyalar
+          <span className="text-xs px-2 py-0.5 bg-primary/15 text-primary border border-primary/20 rounded-sm">
+            {campaigns.length}
+          </span>
+        </h2>
+        <div className="flex items-center gap-2">
+          <Button onClick={load} variant="ghost" size="sm"
+            className="border border-border/40 text-muted-foreground rounded-sm w-8 h-8 p-0">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </Button>
+          <Button onClick={() => setShowForm(v => !v)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm gap-1.5 h-8 px-3">
+            <CalendarClock className="w-3.5 h-3.5" />
+            Yangi Kampaniya
+          </Button>
+        </div>
+      </div>
+
+      {/* Create Form */}
+      {showForm && (
+        <div className="glass-card border-ancient rounded-sm p-5 card-ancient space-y-4">
+          <h3 className="font-jiang-cheng text-foreground font-bold text-sm flex items-center gap-2">
+            <CalendarClock className="w-4 h-4 text-primary" />
+            Kampaniya Rejalashtirish
+          </h3>
+          <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          <form onSubmit={handleCreate} className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Email mavzusi *</Label>
+              <Input value={subject} onChange={e => setSubject(e.target.value)}
+                placeholder="masalan: Iyun oyidagi yangiliklar..." required
+                className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Yuborish sanasi *</Label>
+                <Input type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} required
+                  className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Yuborish vaqti *</Label>
+                <Input type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} required
+                  className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Maqsadli guruh</Label>
+              <select value={targetSrc} onChange={e => setTargetSrc(e.target.value)}
+                className="w-full h-9 text-sm bg-background/60 border border-border/60 rounded-sm px-3 text-foreground">
+                <option value="all">Barcha faol obunalar</option>
+                <option value="hero_form">Faqat Hero Forma</option>
+                <option value="import">Faqat Import</option>
+                <option value="manual">Faqat Qo&apos;lda kiritilgan</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Email matni *</Label>
+              <textarea value={body} onChange={e => setBody(e.target.value)} rows={5} required
+                placeholder="Email mazmunini yozing..."
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="ghost" onClick={() => setShowForm(false)}
+                className="border border-border/40 text-muted-foreground rounded-sm text-sm">Bekor</Button>
+              <Button type="submit" disabled={saving}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm gap-2">
+                {saving
+                  ? <><div className="w-3.5 h-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />Saqlanmoqda...</>
+                  : <><CalendarClock className="w-3.5 h-3.5" />Rejalashtirish</>
+                }
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Campaigns list */}
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-sm" />)}
+        </div>
+      ) : campaigns.length === 0 ? (
+        <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient space-y-3">
+          <Megaphone className="w-10 h-10 text-primary/30 mx-auto" />
+          <p className="text-muted-foreground text-sm">Hali kampaniya yo&apos;q</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {campaigns.map(c => {
+            const openPct  = c.sent_count > 0 ? Math.round(((c.open_count  || 0) / c.sent_count) * 100) : 0;
+            const clickPct = c.sent_count > 0 ? Math.round(((c.click_count || 0) / c.sent_count) * 100) : 0;
+            return (
+              <div key={c.id}
+                onClick={() => setSelected(c)}
+                className="glass-card border-ancient rounded-sm p-4 card-ancient cursor-pointer hover:border-primary/30 transition-all group">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-jiang-cheng text-foreground font-bold text-sm truncate">{c.subject}</span>
+                      <span className={cn('text-[10px] px-2 py-0.5 rounded-sm border shrink-0', CAMP_STATUS_COLORS[c.status])}>
+                        {CAMP_STATUS_LABELS[c.status]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <CalendarClock className="w-3 h-3 text-primary" />
+                        {new Date(c.scheduled_at).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })}
+                      </span>
+                      <span>{c.target_source === 'all' ? 'Barchasi' : c.target_source}</span>
+                      {c.sent_count > 0 && (
+                        <>
+                          <span className="flex items-center gap-1"><Send className="w-3 h-3" />{c.sent_count}</span>
+                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{c.open_count || 0} ({openPct}%)</span>
+                          <span className="flex items-center gap-1"><MousePointer className="w-3 h-3" />{c.click_count || 0} ({clickPct}%)</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {c.status === 'scheduled' && (
+                    <Button variant="ghost" size="sm"
+                      onClick={e => { e.stopPropagation(); setCancelId(c.id); }}
+                      className="shrink-0 h-7 px-2 text-[11px] opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm gap-1">
+                      <XCircle className="w-3.5 h-3.5" />Bekor
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Detail modal */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-dark/80 backdrop-blur-sm"
+          onClick={() => setSelected(null)}>
+          <div className="relative bg-card border border-primary/20 rounded-sm p-6 max-w-lg w-full space-y-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-[3px] absolute top-0 left-0 right-0 bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-sm" />
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Kampaniya tafsilotlari</div>
+                <h3 className="font-jiang-cheng text-lg font-bold text-foreground text-balance">{selected.subject}</h3>
+              </div>
+              <span className={cn('shrink-0 text-[10px] px-2 py-1 rounded-sm border', CAMP_STATUS_COLORS[selected.status])}>
+                {CAMP_STATUS_LABELS[selected.status]}
+              </span>
+            </div>
+            <div className="h-px bg-primary/15" />
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { l: 'Yuborilgan', v: selected.sent_count,       icon: <Send className="w-3.5 h-3.5" /> },
+                { l: 'Ochilgan',   v: selected.open_count  || 0, icon: <Eye className="w-3.5 h-3.5" /> },
+                { l: 'Bosilgan',   v: selected.click_count || 0, icon: <MousePointer className="w-3.5 h-3.5" /> },
+              ].map(s => (
+                <div key={s.l} className="bg-background/30 border border-border/30 rounded-sm p-3 text-center space-y-1">
+                  <div className="flex justify-center text-primary">{s.icon}</div>
+                  <div className="font-bold text-lg text-foreground">{s.v}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.l}</div>
+                  {selected.sent_count > 0 && s.l !== 'Yuborilgan' && (
+                    <div className="text-[10px] text-primary/70">
+                      {Math.round((s.v / selected.sent_count) * 100)}%
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="bg-background/20 border border-border/20 rounded-sm p-3">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Email matni</div>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line line-clamp-6">{selected.body}</p>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Reja: <span className="text-foreground">{new Date(selected.scheduled_at).toLocaleString('uz-UZ')}</span></span>
+              <span>Guruh: <span className="text-foreground">{selected.target_source === 'all' ? 'Barchasi' : selected.target_source}</span></span>
+            </div>
+            <Button onClick={() => setSelected(null)} variant="ghost"
+              className="w-full border border-primary/25 text-muted-foreground hover:bg-primary/10 rounded-sm text-sm">
+              Yopish
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel confirm */}
+      <AlertDialog open={!!cancelId} onOpenChange={o => !o && setCancelId(null)}>
+        <AlertDialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-jiang-cheng text-foreground">Kampaniyani Bekor Qilish</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Bu kampaniya boshqa yuborilmaydi. Tasdiqlaysizmi?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border border-border/40 text-muted-foreground rounded-sm bg-transparent">Yo&apos;q</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancel} disabled={cancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">
+              {cancelling ? 'Bekor qilinmoqda...' : 'Bekor Qilish'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
