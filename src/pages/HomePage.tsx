@@ -442,7 +442,7 @@ function EventCard({ ev, registerLabel }: { ev: HomeEvent; registerLabel: string
           <span className="w-1 h-1 bg-primary rounded-full shrink-0 mt-1.5" />
           <span className="min-w-0">{ev.location}</span>
         </div>
-        <Link to="/tadbirlar" className="block pt-1">
+        <Link to={`/tadbirlar/${ev.id}`} className="block pt-1">
           <Button
             size="sm"
             variant="ghost"

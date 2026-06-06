@@ -117,6 +117,7 @@ func main() {
 	r.Get("/businesses", api.ListBusinesses)
 	r.Get("/businesses/detail", api.GetBusiness)
 	r.Get("/events", api.ListEvents)
+	r.Get("/events/detail", api.GetEventDetail)
 	r.Get("/events/spots", api.GetEvent)
 	r.Get("/news", api.ListNews)
 	r.Get("/news/detail", api.GetNews)

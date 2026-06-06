@@ -54,6 +54,7 @@ import {
   adminUpsertPlan,
   adminDeletePlan,
   sendEmail,
+  uploadFile,
 } from '@/api/client';
 import ContactMessagesSection from '@/pages/admin/ContactMessagesSection';
 import MembershipApplicationsSection from '@/pages/admin/MembershipApplicationsSection';
@@ -1194,8 +1195,9 @@ function EventsSection() {
   const [showForm, setShowForm] = useState(false);
   const [editEv, setEditEv] = useState<Event | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', is_featured: false });
+  const [form, setForm] = useState({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', image_url: '', is_featured: false });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1210,18 +1212,33 @@ function EventsSection() {
     !query || ev.title.toLowerCase().includes(query.toLowerCase()) || ev.location.toLowerCase().includes(query.toLowerCase())
   );
 
-  const resetForm = () => setForm({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', is_featured: false });
+  const resetForm = () => setForm({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', image_url: '', is_featured: false });
   const openAdd = () => { resetForm(); setEditEv(null); setShowForm(true); };
   const openEdit = (ev: Event) => {
     setEditEv(ev);
-    setForm({ title: ev.title, category: ev.category, location: ev.location, event_date: ev.event_date, event_time: ev.event_time || '', price_usd: String(ev.price_usd), spots_total: String(ev.spots_total), description: ev.description || '', is_featured: ev.is_featured });
+    setForm({ title: ev.title, category: ev.category, location: ev.location, event_date: ev.event_date, event_time: ev.event_time || '', price_usd: String(ev.price_usd), spots_total: String(ev.spots_total), description: ev.description || '', image_url: ev.image_url || '', is_featured: ev.is_featured });
     setShowForm(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setForm(f => ({ ...f, image_url: url }));
+      toast.success('Rasm yuklandi');
+    } catch {
+      toast.error('Rasmni yuklashda xatolik');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
     if (!form.title.trim() || !form.event_date || !form.location.trim()) { toast.error('Sarlavha, sana va joylashuv majburiy'); return; }
     setSaving(true);
-    const payload = { title: form.title, category: form.category, location: form.location, event_date: form.event_date, event_time: form.event_time || null, price_usd: Number(form.price_usd) || 0, spots_total: Number(form.spots_total) || 100, description: form.description || null, is_featured: form.is_featured };
+    const payload = { title: form.title, category: form.category, location: form.location, event_date: form.event_date, event_time: form.event_time || null, price_usd: Number(form.price_usd) || 0, spots_total: Number(form.spots_total) || 100, description: form.description || null, image_url: form.image_url || null, is_featured: form.is_featured };
     try {
       await adminUpsertEvent({
         id: editEv?.id,
@@ -1346,6 +1363,30 @@ function EventsSection() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            {/* Image upload — optional */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Rasm (ixtiyoriy)</Label>
+              <div className="space-y-2">
+                <label className={cn(
+                  'flex items-center gap-2 px-3 py-2 border border-dashed border-border/60 rounded-sm cursor-pointer text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors',
+                  uploading && 'opacity-50 pointer-events-none'
+                )}>
+                  <UploadCloud className="w-4 h-4 shrink-0" />
+                  {uploading ? 'Yuklanmoqda...' : 'Rasm tanlash (JPG, PNG, WebP)'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </label>
+                {form.image_url && (
+                  <div className="relative rounded-sm overflow-hidden border border-border/40 aspect-[16/6]">
+                    <img src={form.image_url} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, image_url: '' }))}
+                      className="absolute top-2 right-2 w-6 h-6 bg-destructive/80 text-white rounded-sm flex items-center justify-center text-xs hover:bg-destructive"
+                    >✕</button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="is_featured" checked={form.is_featured} onChange={e => setForm(f => ({ ...f, is_featured: e.target.checked }))} />

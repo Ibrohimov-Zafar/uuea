@@ -79,6 +79,11 @@ export async function getEvents(active = true): Promise<Event[]> {
   return asArray(data);
 }
 
+export async function getEventDetail(id: string): Promise<Event> {
+  const { data } = await http.get<Event>('/events/detail', { params: { id } });
+  return data;
+}
+
 // News
 export async function getNews(): Promise<NewsPost[]> {
   const { data } = await http.get<NewsPost[]>('/news');

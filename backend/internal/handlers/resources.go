@@ -439,3 +439,23 @@ func (a *API) GetEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, data[0])
 }
+
+func (a *API) GetEventDetail(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	rows, err := a.DB.Query(`SELECT * FROM events WHERE id=? AND is_active=1`, id)
+	if err != nil {
+		errJSON(w, http.StatusInternalServerError, "server_error")
+		return
+	}
+	defer rows.Close()
+	data, _ := scanRows(rows)
+	if len(data) == 0 {
+		errJSON(w, http.StatusNotFound, "not_found")
+		return
+	}
+	writeJSON(w, http.StatusOK, data[0])
+}

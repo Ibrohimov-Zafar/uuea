@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Search, CreditCard, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, MapPin, Users, Search, CreditCard, CheckCircle, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
 import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -319,30 +320,53 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
   const { t } = useLang();
   const isUpcoming = new Date(event.event_date) >= new Date();
   const spotsLow = event.spots_remaining > 0 && event.spots_remaining <= 10;
+
   return (
-    <div
-      onClick={onClick}
-      className={cn(
-        'glass-card border-ancient rounded-sm overflow-hidden card-ancient cursor-pointer',
-        'hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300',
-        'flex flex-col h-full',
-        featured && 'border-primary/30'
-      )}
-    >
-      {/* Category banner */}
-      <div className="bg-primary/10 border-b border-border/30 px-4 py-2 flex items-center justify-between">
-        <span className="text-primary text-[10px] font-semibold tracking-wider uppercase">{event.category}</span>
-        <div className="flex items-center gap-2">
-          {featured && <span className="vip-badge text-[9px]">Featured</span>}
-          {event.price_usd > 0
-            ? <span className="text-primary font-bold text-xs">${event.price_usd}</span>
-            : <span className="text-green-400 text-xs font-bold">{t('free')}</span>
-          }
+    <div className={cn(
+      'glass-card border-ancient rounded-sm overflow-hidden card-ancient flex flex-col h-full',
+      'hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300',
+      featured && 'border-primary/30'
+    )}>
+
+      {/* Optional image or category banner */}
+      {event.image_url ? (
+        <div className="aspect-[16/9] relative overflow-hidden shrink-0">
+          <img
+            src={event.image_url}
+            alt={event.title}
+            className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
+          <div className="absolute top-3 left-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-primary text-primary-foreground rounded-sm font-semibold">
+              {event.category}
+            </span>
+            {featured && <span className="vip-badge text-[9px]">Featured</span>}
+          </div>
+          <div className="absolute bottom-3 right-3">
+            {event.price_usd > 0
+              ? <span className="text-xs font-bold px-2 py-1 bg-navy/80 text-primary rounded-sm border border-primary/30">${event.price_usd}</span>
+              : <span className="text-xs font-bold px-2 py-1 bg-green-400/20 text-green-400 rounded-sm border border-green-400/30">{t('free')}</span>
+            }
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-primary/10 border-b border-border/30 px-4 py-2 flex items-center justify-between shrink-0">
+          <span className="text-primary text-[10px] font-semibold tracking-wider uppercase">{event.category}</span>
+          <div className="flex items-center gap-2">
+            {featured && <span className="vip-badge text-[9px]">Featured</span>}
+            {event.price_usd > 0
+              ? <span className="text-primary font-bold text-xs">${event.price_usd}</span>
+              : <span className="text-green-400 text-xs font-bold">{t('free')}</span>
+            }
+          </div>
+        </div>
+      )}
 
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-jiang-cheng text-foreground font-bold text-sm mb-3 leading-snug line-clamp-2 text-balance">{event.title}</h3>
+        <h3 className="font-jiang-cheng text-foreground font-bold text-sm mb-3 leading-snug line-clamp-2 text-balance">
+          {event.title}
+        </h3>
         <div className="space-y-1.5 mb-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -360,28 +384,40 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
           </div>
         </div>
         {event.description && (
-          <p className="text-muted-foreground text-xs leading-relaxed mb-4 line-clamp-2 flex-1 text-pretty">{event.description}</p>
+          <p className="text-muted-foreground text-xs leading-relaxed mb-4 line-clamp-2 flex-1 text-pretty">
+            {event.description}
+          </p>
         )}
-        {registered ? (
-          <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-sm border border-green-400/30 bg-green-400/10 text-green-400 text-sm font-semibold mt-auto">
-            <CheckCircle className="w-4 h-4" /> Ro'yxatdan o'tilgan
-          </div>
-        ) : (
-          <Button className={cn(
-            'w-full rounded-sm text-sm mt-auto shrink-0',
-            event.spots_remaining <= 0
-              ? 'bg-muted text-muted-foreground cursor-not-allowed'
-              : 'bg-primary text-primary-foreground hover:bg-primary/90'
-          )} onClick={event.spots_remaining > 0 ? onClick : undefined} disabled={event.spots_remaining <= 0}>
-            {event.spots_remaining <= 0 ? t('noSpots')
-              : event.price_usd > 0 ? t('payAndRegister') : t('registerEvent')}
-          </Button>
-        )}
-        {!isUpcoming && (
-          <div className="mt-2 text-center">
-            <span className="text-muted-foreground/50 text-[10px]">Tadbir tugagan</span>
-          </div>
-        )}
+
+        <div className="mt-auto space-y-2">
+          {registered ? (
+            <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-sm border border-green-400/30 bg-green-400/10 text-green-400 text-sm font-semibold">
+              <CheckCircle className="w-4 h-4" /> Ro&apos;yxatdan o&apos;tilgan
+            </div>
+          ) : (
+            <Button
+              className={cn(
+                'w-full rounded-sm text-sm shrink-0',
+                event.spots_remaining <= 0 || !isUpcoming
+                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              )}
+              onClick={event.spots_remaining > 0 && isUpcoming ? onClick : undefined}
+              disabled={event.spots_remaining <= 0 || !isUpcoming}
+            >
+              {!isUpcoming ? 'Tadbir tugagan'
+                : event.spots_remaining <= 0 ? t('noSpots')
+                : event.price_usd > 0 ? t('payAndRegister') : t('registerEvent')}
+            </Button>
+          )}
+          <Link
+            to={`/tadbirlar/${event.id}`}
+            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs text-muted-foreground hover:text-primary transition-colors border border-border/40 hover:border-primary/30 rounded-sm"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Batafsil ko&apos;rish
+          </Link>
+        </div>
       </div>
     </div>
   );

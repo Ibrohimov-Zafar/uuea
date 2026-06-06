@@ -9,6 +9,7 @@ import LawDetailPage from './pages/LawDetailPage';
 import DirectoryPage from './pages/DirectoryPage';
 import BusinessDetailPage from './pages/BusinessDetailPage';
 import EventsPage from './pages/EventsPage';
+import EventDetailPage from './pages/EventDetailPage';
 import NewsPage from './pages/NewsPage';
 import NewsDetailPage from './pages/NewsDetailPage';
 import ContactPage from './pages/ContactPage';
@@ -41,6 +42,7 @@ export const routes: RouteConfig[] = [
   { name: 'Katalog',                path: '/katalog',       element: <DirectoryPage />,     public: true },
   { name: 'Biznes',                 path: '/katalog/:id',   element: <BusinessDetailPage />, public: true },
   { name: 'Tadbirlar',              path: '/tadbirlar',     element: <EventsPage />,        public: true },
+  { name: 'Tadbir',                 path: '/tadbirlar/:id', element: <EventDetailPage />,   public: true },
   { name: 'Yangiliklar',            path: '/yangiliklar',   element: <NewsPage />,          public: true },
   { name: 'Yangilik',               path: '/yangiliklar/:id', element: <NewsDetailPage />,  public: true },
   { name: 'Aloqa',                  path: '/aloqa',         element: <ContactPage />,       public: true },
