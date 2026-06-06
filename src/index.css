@@ -202,7 +202,8 @@
   }
 
   /* Gold gradient text */
-  .text-gold-gradient {
+  .text-gold-gradient,
+  .gradient-text {
     background: var(--gradient-gold);
     background-clip: text;
     -webkit-background-clip: text;

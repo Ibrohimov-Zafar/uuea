@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { SITE } from '@/config/site';
 
+/** White logo PNG — invert in light mode so it stays visible on pale backgrounds. */
+export const logoImgClass = 'w-auto object-contain shrink-0 invert dark:invert-0';
+
 type LogoProps = {
   className?: string;
   showText?: boolean;
@@ -17,7 +20,7 @@ export default function Logo({ className, showText = false, size = 'md', linkTo 
       <img
         src="/logo.png"
         alt={SITE.shortName}
-        className={cn(sizes[size], 'w-auto object-contain shrink-0', className)}
+        className={cn(sizes[size], logoImgClass, className)}
       />
       {showText && (
         <div className="hidden sm:block min-w-0">

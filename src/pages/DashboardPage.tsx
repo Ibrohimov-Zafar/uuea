@@ -17,6 +17,7 @@ import {
   AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import Logo from '@/components/common/Logo';
 import {
   getMyMembership,
   cancelMyMembership,
@@ -200,7 +201,7 @@ export default function DashboardPage() {
       <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-sidebar border-r border-sidebar-border">
         {/* Logo */}
         <Link to="/" className="p-5 border-b border-sidebar-border flex items-center gap-2 hover:bg-sidebar-accent transition-colors">
-          <img src="/logo.png" alt="UUEA" className="h-7 w-auto object-contain" />
+          <Logo linkTo="/" size="sm" className="h-7" />
           <span className="font-jiang-cheng text-sidebar-foreground text-sm font-bold">UUEA</span>
         </Link>
 

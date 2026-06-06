@@ -136,20 +136,20 @@ function HeroSection() {
   };
 
   return (
-    <section ref={sectionRef} className="relative min-h-[95vh] flex items-center overflow-hidden bg-navy-dark">
+    <section ref={sectionRef} className="relative min-h-[95vh] flex items-center overflow-hidden bg-black">
       {/* ── Hero background with parallax ── */}
       <img
         src="/h.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        style={{ transform: `translateY(${videoParallax}px) scale(1.12)`, willChange: 'transform' }}
+        className="absolute inset-0 w-full h-full object-cover object-center brightness-110"
+        style={{ transform: `translateY(${videoParallax}px) scale(1.08)`, willChange: 'transform' }}
       />
 
-      {/* Overlays — lighter so the photo stays visible */}
-      <div className="absolute inset-0 bg-navy-dark/30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/55 via-navy-dark/25 to-navy-dark/10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/50 via-transparent to-navy-dark/20" />
+      {/* Overlays — light tint so the photo stays visible; text remains white */}
+      <div className="absolute inset-0 bg-black/15" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-black/5" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
 
       {/* Runic circle overlay */}
       <div className="absolute top-16 right-10 w-[420px] h-[420px] z-0 pointer-events-none hidden xl:block">
@@ -175,7 +175,7 @@ function HeroSection() {
 
           {/* Tag — fade delay 0ms */}
           <div
-            className="inline-flex items-center gap-2.5 px-4 py-2 border border-primary/40 bg-primary/8 rounded-sm mx-auto mb-8 transition-all duration-700"
+            className="inline-flex items-center gap-2.5 px-4 py-2 border border-primary/50 bg-black/30 rounded-sm mx-auto mb-8 transition-all duration-700 backdrop-blur-sm"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)' }}
           >
             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
@@ -184,19 +184,19 @@ function HeroSection() {
 
           {/* Headline — fade delay 100ms */}
           <h1
-            className="font-jiang-cheng text-4xl md:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance mb-6 transition-all duration-700"
+            className="font-jiang-cheng text-4xl md:text-6xl xl:text-7xl font-bold text-white leading-tight text-balance mb-6 transition-all duration-700 drop-shadow-md"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(32px)', transitionDelay: '100ms' }}
           >
             {t('heroTitle').split(' ').slice(0, 2).join(' ')}{' '}
             <span className="relative inline-block">
-              <span className="gradient-text">{t('heroTitle').split(' ').slice(2, 3).join(' ')}</span>
+              <span className="text-gold-gradient">{t('heroTitle').split(' ').slice(2, 3).join(' ')}</span>
             </span>{' '}
             {t('heroTitle').split(' ').slice(3).join(' ')}
           </h1>
 
           {/* Sub — fade delay 200ms */}
           <p
-            className="text-muted-foreground text-base md:text-xl leading-relaxed max-w-2xl text-pretty mx-auto mb-8 transition-all duration-700"
+            className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl text-pretty mx-auto mb-8 transition-all duration-700 drop-shadow-sm"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(28px)', transitionDelay: '200ms' }}
           >
             {t('heroSub')}
@@ -213,7 +213,7 @@ function HeroSection() {
               </Button>
             </Link>
             <Link to="/katalog">
-              <Button size="lg" variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60 rounded-sm px-8 text-sm w-full sm:w-auto">
+              <Button size="lg" variant="ghost" className="border border-primary/50 text-primary bg-black/25 hover:bg-black/40 hover:border-primary/70 rounded-sm px-8 text-sm w-full sm:w-auto backdrop-blur-sm">
                 <Play className="w-3.5 h-3.5 mr-2" />{t('heroCtaAlt')}
               </Button>
             </Link>
@@ -231,7 +231,7 @@ function HeroSection() {
             ].map(s => (
               <div key={s.l} className="space-y-0.5">
                 <div className="font-jiang-cheng text-2xl font-bold text-primary">{s.n}</div>
-                <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{s.l}</div>
+                <div className="text-[11px] text-white/70 uppercase tracking-wider">{s.l}</div>
               </div>
             ))}
           </div>
@@ -246,7 +246,7 @@ function HeroSection() {
               { icon: <CheckCircle className="w-3.5 h-3.5" />, label: t('statVerified') },
               { icon: <Star className="w-3.5 h-3.5" />,        label: t('statPremium') },
             ].map(b => (
-              <div key={b.label} className="flex items-center gap-1.5 px-3 py-1.5 border border-border/40 bg-background/20 rounded-sm text-xs text-muted-foreground backdrop-blur-sm">
+              <div key={b.label} className="flex items-center gap-1.5 px-3 py-1.5 border border-white/15 bg-black/30 rounded-sm text-xs text-white/80 backdrop-blur-sm">
                 <span className="text-primary">{b.icon}</span>
                 {b.label}
               </div>
@@ -259,25 +259,25 @@ function HeroSection() {
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transitionDelay: '600ms' }}
           >
             {submitted ? (
-              <div className="flex items-center justify-center gap-3 px-6 py-4 border border-primary/40 bg-primary/10 rounded-sm backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-3 px-6 py-4 border border-primary/40 bg-black/40 rounded-sm backdrop-blur-sm">
                 <CheckCircle className="w-5 h-5 text-primary shrink-0" />
                 <div className="text-left">
                   <p className="text-sm font-semibold text-primary">Muvaffaqiyatli yuborildi!</p>
-                  <p className="text-xs text-muted-foreground">Tez orada siz bilan bog&apos;lanamiz.</p>
+                  <p className="text-xs text-white/70">Tez orada siz bilan bog&apos;lanamiz.</p>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleEmailSubmit} className="space-y-2">
-                <p className="text-xs text-muted-foreground/80 uppercase tracking-widest text-center">
+                <p className="text-xs text-white/70 uppercase tracking-widest text-center">
                   A&apos;zolikka qo&apos;shilish uchun emailingizni qoldiring
                 </p>
-                <div className="flex gap-2 p-1.5 bg-navy-dark/60 border border-primary/25 rounded-sm backdrop-blur-sm">
+                <div className="flex gap-2 p-1.5 bg-black/45 border border-primary/30 rounded-sm backdrop-blur-sm">
                   <Input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="email@kompaniya.uz"
-                    className="flex-1 min-w-0 bg-transparent border-0 text-foreground placeholder:text-muted-foreground/60 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 h-10 px-3"
+                    className="flex-1 min-w-0 bg-transparent border-0 text-white placeholder:text-white/45 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 h-10 px-3"
                   />
                   <Button
                     type="submit"
@@ -291,7 +291,7 @@ function HeroSection() {
                     {submitting ? "Yuborilmoqda..." : "Qo'shilish"}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground/50 text-center">
+                <p className="text-[10px] text-white/50 text-center">
                   Spam yo&apos;q. Istalgan vaqt obunani bekor qilish mumkin.
                 </p>
               </form>
