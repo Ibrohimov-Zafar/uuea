@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -130,6 +131,7 @@ func (a *API) AdminUpsertBusiness(w http.ResponseWriter, r *http.Request) {
 			str(body["name"]), str(body["category"]), str(body["description"]), str(body["website"]), str(body["phone"]),
 			str(body["email"]), str(body["address"]), str(body["logo_url"]), str(body["region"]), boolInt(isVIP), boolInt(isActive), now, id)
 		if err != nil {
+			log.Printf("[AdminUpsertBusiness] UPDATE error: %v | id: %s", err, id)
 			errJSON(w, http.StatusInternalServerError, "server_error")
 			return
 		}
@@ -143,6 +145,7 @@ func (a *API) AdminUpsertBusiness(w http.ResponseWriter, r *http.Request) {
 		str(body["website"]), str(body["phone"]), str(body["email"]), str(body["address"]), str(body["logo_url"]), str(body["region"]),
 		boolInt(isVIP), boolInt(isActive), now, now)
 	if err != nil {
+		log.Printf("[AdminUpsertBusiness] INSERT error: %v | body: %v", err, body)
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return
 	}
