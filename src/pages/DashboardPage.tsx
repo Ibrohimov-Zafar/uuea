@@ -25,6 +25,8 @@ import {
   getMyBusinessSubmissions,
   createBusinessSubmission,
   getMyOrders,
+  getMySavedCards,
+  getMembershipPlans,
   adminStats,
   adminList,
   adminListNews,
@@ -38,9 +40,9 @@ import { useLang, type Lang } from '@/contexts/LangContext';
 import { formatDateLocale } from '@/i18n/locale';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
-import type { Membership } from '@/types/types';
+import type { Membership, MembershipPlanRow } from '@/types/types';
 
-type Section = 'overview' | 'membership' | 'events' | 'catalog' | 'messages' | 'billing' | 'settings' | 'business';
+type Section = 'overview' | 'membership' | 'events' | 'catalog' | 'messages' | 'billing' | 'settings' | 'business' | 'cards';
 
 interface Order { id: string; total_amount: number; status: string; created_at: string; items: unknown; customer_name: string | null; customer_email: string | null; stripe_payment_intent_id: string | null }
 type BusinessSubmission = BusinessSubmissionRow;
@@ -55,9 +57,11 @@ const NAV_ITEMS = [
   { id: 'overview',    icon: LayoutDashboard, key: 'overview' as const },
   { id: 'membership',  icon: Star,            key: 'membershipLabel' as const },
   { id: 'events',      icon: Calendar,        key: 'eventsLabel' as const },
+  { id: 'catalog',     icon: Building,        key: 'catalogProfile' as const },
   { id: 'business',    icon: Building2,       key: 'businessSubmission' as const },
-  { id: 'messages',    icon: MessageSquare,   key: 'messages' as const },
   { id: 'billing',     icon: CreditCard,      key: 'billing' as const },
+  { id: 'cards',       icon: BadgeCheck,      key: 'savedCards' as const },
+  { id: 'messages',    icon: MessageSquare,   key: 'messages' as const },
   { id: 'settings',    icon: Settings,        key: 'settings' as const },
 ] as const;
 
@@ -79,6 +83,7 @@ export default function DashboardPage() {
     pendingNews: number;
     revenueTotal?: number;
   } | null>(null);
+  const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/kirish', { replace: true });
@@ -88,14 +93,16 @@ export default function DashboardPage() {
     if (!user) return;
     (async () => {
       setMemberLoading(true);
-      const [mem, orders, regs] = await Promise.all([
+      const [mem, orders, regs, planList] = await Promise.all([
         getMyMembership(),
         getMyOrders(),
         getMyEventRegistrations(),
+        getMembershipPlans(),
       ]);
       setMembership(mem);
       setOrdersCount(orders?.length ?? 0);
       setEventsRegCount(regs?.length ?? 0);
+      setPlans(planList);
       setMemberLoading(false);
     })();
   }, [user]);
@@ -335,6 +342,7 @@ export default function DashboardPage() {
               onCancelClick={() => setCancelOpen(true)}
               onNavigate={goTo}
               adminSummary={adminSummary}
+              plans={plans}
             />
           )}
           {section === 'membership' && (
@@ -342,13 +350,16 @@ export default function DashboardPage() {
               membership={membership}
               loading={memberLoading}
               onCancelClick={() => setCancelOpen(true)}
+              plans={plans}
             />
           )}
-          {section === 'events' && <EventsSection userId={user.id} />}
-          {section === 'business' && <BusinessSection userId={user.id} />}
-          {section === 'messages' && <MessagesSection />}
-          {section === 'billing' && <BillingSection userId={user.id} />}
-          {section === 'settings' && <SettingsSection profile={profile} onSaved={refreshProfile} />}
+          {section === 'events'    && <EventsSection userId={user.id} />}
+          {section === 'catalog'   && <CatalogSection userId={user.id} />}
+          {section === 'business'  && <BusinessSection userId={user.id} />}
+          {section === 'billing'   && <BillingSection userId={user.id} />}
+          {section === 'cards'     && <SavedCardsSection userId={user.id} />}
+          {section === 'messages'  && <MessagesSection />}
+          {section === 'settings'  && <SettingsSection profile={profile} onSaved={refreshProfile} />}
         </div>
       </div>
 
@@ -373,10 +384,11 @@ export default function DashboardPage() {
 }
 
 /* ── OVERVIEW ── */
-function OverviewSection({ displayName, membership, memberLoading, ordersCount, eventsRegCount, onCancelClick, onNavigate, adminSummary }: {
+function OverviewSection({ displayName, membership, memberLoading, ordersCount, eventsRegCount, onCancelClick, onNavigate, adminSummary, plans }: {
   displayName: string; membership: Membership | null; memberLoading: boolean;
   ordersCount: number; eventsRegCount: number;
   onCancelClick: () => void; onNavigate: (s: Section) => void;
+  plans: MembershipPlanRow[];
   adminSummary: {
     counts: { profiles: number; businesses: number; events: number } | null;
     pendingSubmissions: number;
@@ -389,6 +401,7 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
   const planColors: Record<string, string> = {
     starter: 'text-blue-400', business: 'text-primary', corporate: 'text-purple-400', international: 'text-red-400'
   };
+  const currentPlan = plans.find(p => p.slug === membership?.plan_slug);
   return (
     <div className="space-y-6">
       <div>
@@ -442,13 +455,13 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
       {membership?.status === 'active' && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "A'zolik", value: membership.plan_slug?.toUpperCase() || '—', accent: true },
+            { label: "A'zolik", value: currentPlan?.name || membership.plan_slug?.toUpperCase() || '—', accent: true },
+            { label: "Narx", value: currentPlan ? `$${currentPlan.price_usd}/yil` : '—', accent: false },
             { label: "To'lovlar", value: String(ordersCount), accent: false },
-            { label: 'Tadbirlar', value: String(eventsRegCount), accent: false },
             {
-              label: 'Yangilash',
+              label: 'Qolgan kun',
               value: membership.expires_at
-                ? `${Math.max(0, Math.ceil((new Date(membership.expires_at).getTime() - Date.now()) / 86400000))} kun`
+                ? `${Math.max(0, Math.ceil((new Date(membership.expires_at).getTime() - Date.now()) / 86400000))}`
                 : '—',
               accent: false,
             },
@@ -540,32 +553,52 @@ function OverviewSection({ displayName, membership, memberLoading, ordersCount, 
 }
 
 /* ── MEMBERSHIP ── */
-function MembershipSection({ membership, loading, onCancelClick }: {
+function MembershipSection({ membership, loading, onCancelClick, plans }: {
   membership: Membership | null; loading: boolean; onCancelClick: () => void;
+  plans: MembershipPlanRow[];
 }) {
   const { t } = useLang();
   const { isAdmin } = useAuth();
+  const plan = plans.find(p => p.slug === membership?.plan_slug);
+
   if (loading) return <Skeleton className="h-48 bg-muted rounded-sm" />;
+
   if (isAdmin && (!membership || membership.status !== 'active')) {
     return (
       <div className="glass-card border-ancient rounded-sm p-8 card-ancient text-center space-y-4">
         <Star className="w-12 h-12 text-primary/30 mx-auto" />
-        <div>
-          <h3 className="font-jiang-cheng text-foreground font-bold text-lg">Admin</h3>
-          <p className="text-muted-foreground text-sm mt-1">
-            Admin akkaunti uchun a'zolik talab qilinmaydi.
-          </p>
-        </div>
+        <h3 className="font-jiang-cheng text-foreground font-bold text-lg">Admin</h3>
+        <p className="text-muted-foreground text-sm">Admin akkaunti uchun a&apos;zolik talab qilinmaydi.</p>
       </div>
     );
   }
+
   if (!membership || membership.status !== 'active') return (
     <div className="glass-card border-ancient rounded-sm p-8 card-ancient text-center space-y-4">
       <Star className="w-12 h-12 text-primary/30 mx-auto" />
       <div>
         <h3 className="font-jiang-cheng text-foreground font-bold text-lg">{t('noMembership')}</h3>
-        <p className="text-muted-foreground text-sm mt-1">UUEA a'zosi bo'lib, ko'proq imkoniyatlarga ega bo'ling</p>
+        <p className="text-muted-foreground text-sm mt-1">UUEA a&apos;zosi bo&apos;lib, ko&apos;proq imkoniyatlarga ega bo&apos;ling</p>
       </div>
+      {plans.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left mt-4 max-w-lg mx-auto">
+          {plans.map(p => (
+            <div key={p.slug} className="border border-border/50 rounded-sm p-4 space-y-2 bg-card/50">
+              <div className="flex items-center justify-between">
+                <span className="font-jiang-cheng text-foreground font-bold text-sm">{p.name}</span>
+                <span className="text-primary font-bold text-sm">${p.price_usd}<span className="text-[10px] text-muted-foreground">/yil</span></span>
+              </div>
+              <ul className="space-y-1">
+                {(p.features || []).slice(0, 3).map(f => (
+                  <li key={f} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CheckCircle className="w-3 h-3 text-primary shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
       <Link to="/qoshilish">
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">{t('join')}</Button>
       </Link>
@@ -575,16 +608,21 @@ function MembershipSection({ membership, loading, onCancelClick }: {
   return (
     <div className="space-y-6">
       <h2 className="font-jiang-cheng text-foreground text-xl font-bold">{t('membershipLabel')}</h2>
-      <div className="glass-card border-ancient rounded-sm p-6 card-ancient space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+
+      {/* Active plan card */}
+      <div className="glass-card border-ancient rounded-sm p-6 card-ancient space-y-5">
+        <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
-            <div className="font-jiang-cheng text-primary text-2xl font-bold">{membership.plan_slug?.toUpperCase()}</div>
-            <div className="text-muted-foreground text-sm">A'zolik rejasi</div>
+            <div className="font-jiang-cheng text-primary text-2xl font-bold">{plan?.name || membership.plan_slug?.toUpperCase()}</div>
+            <div className="text-muted-foreground text-sm mt-0.5">
+              {plan ? `$${plan.price_usd} / yil` : "A'zolik rejasi"}
+            </div>
           </div>
-          <span className="text-xs px-3 py-1 rounded-sm border text-green-400 bg-green-400/10 border-green-400/20">
+          <span className="text-xs px-3 py-1 rounded-sm border text-green-400 bg-green-400/10 border-green-400/20 self-start">
             {t('active')}
           </span>
         </div>
+
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground text-xs mb-1">Boshlangan</div>
@@ -595,11 +633,31 @@ function MembershipSection({ membership, loading, onCancelClick }: {
             <div className="text-foreground">{membership.expires_at ? new Date(membership.expires_at).toLocaleDateString('uz-UZ') : '—'}</div>
           </div>
         </div>
-        <div className="pt-3 border-t border-border/40">
+
+        {/* Plan features from API */}
+        {plan && plan.features.length > 0 && (
+          <div className="border-t border-border/40 pt-4">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Reja imtiyozlari</div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {plan.features.map(f => (
+                <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="w-3.5 h-3.5 text-primary shrink-0" />{f}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="pt-2 border-t border-border/40 flex items-center gap-3 flex-wrap">
           <Button onClick={onCancelClick} variant="ghost"
             className="border border-destructive/30 text-destructive hover:bg-destructive/10 rounded-sm text-sm">
             <ShieldOff className="w-4 h-4 mr-2" />{t('cancelMembership')}
           </Button>
+          <Link to="/qoshilish">
+            <Button variant="ghost" className="border border-primary/30 text-primary hover:bg-primary/10 rounded-sm text-sm">
+              Rejani Yangilash
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
@@ -798,6 +856,157 @@ function BusinessSection({ userId }: { userId: string }) {
               <div className="shrink-0">{statusBadge(s.status)}</div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── CATALOG PROFILE ── */
+function CatalogSection({ userId }: { userId: string }) {
+  const [submissions, setSubmissions] = useState<BusinessSubmissionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { t } = useLang();
+
+  useEffect(() => {
+    getMyBusinessSubmissions()
+      .then(d => setSubmissions(Array.isArray(d) ? d : []))
+      .catch(() => setSubmissions([]))
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  const approved = submissions.filter(s => s.status === 'approved');
+  const pending  = submissions.filter(s => s.status === 'pending');
+
+  const statusColor = (s: string) =>
+    s === 'approved' ? 'text-green-400 bg-green-400/10 border-green-400/20'
+    : s === 'rejected' ? 'text-destructive bg-destructive/10 border-destructive/20'
+    : 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-jiang-cheng text-foreground text-xl font-bold">{t('catalogProfile')}</h2>
+        <Link to="/katalog">
+          <Button variant="ghost" size="sm" className="border border-primary/30 text-primary hover:bg-primary/10 rounded-sm text-xs">
+            Katalogni Ko&apos;rish
+          </Button>
+        </Link>
+      </div>
+
+      {/* Summary */}
+      {!loading && (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Jami", value: submissions.length },
+            { label: "Tasdiqlangan", value: approved.length },
+            { label: "Kutilmoqda", value: pending.length },
+          ].map(s => (
+            <div key={s.label} className="glass-card border-ancient rounded-sm p-4 card-ancient text-center">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{s.label}</div>
+              <div className="font-jiang-cheng text-xl font-bold text-foreground">{s.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading ? <Skeleton className="h-40 bg-muted rounded-sm" /> : submissions.length === 0 ? (
+        <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient space-y-3">
+          <Building className="w-10 h-10 text-primary/30 mx-auto" />
+          <p className="text-muted-foreground text-sm">Katalogga hali biznes qo&apos;shilmagan</p>
+          <p className="text-xs text-muted-foreground/60">
+            &quot;Biznes Qo&apos;shish&quot; bo&apos;limidan taklif yuboring — admin tasdiqlangach katalogda ko&apos;rinadi
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {submissions.map(s => (
+            <div key={s.id} className="glass-card border-ancient rounded-sm p-4 card-ancient">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-jiang-cheng text-foreground font-bold text-sm">{s.name}</span>
+                    <span className={cn('text-[10px] px-2 py-0.5 rounded-sm border', statusColor(s.status))}>
+                      {s.status === 'approved' ? 'Tasdiqlangan' : s.status === 'rejected' ? 'Rad etilgan' : 'Kutilmoqda'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{s.category}</div>
+                  {s.admin_note && (
+                    <div className="text-xs text-muted-foreground italic border-l-2 border-primary/30 pl-2 mt-1">
+                      Admin: &quot;{s.admin_note}&quot;
+                    </div>
+                  )}
+                </div>
+                {s.status === 'approved' && (
+                  <Link to={`/katalog/${s.id}`}>
+                    <Button variant="ghost" size="sm" className="border border-primary/25 text-primary hover:bg-primary/10 rounded-sm text-xs h-7 shrink-0">
+                      Ko&apos;rish
+                    </Button>
+                  </Link>
+                )}
+              </div>
+              <div className="text-[11px] text-muted-foreground/50 mt-2">
+                {new Date(s.created_at).toLocaleDateString('uz-UZ')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── SAVED CARDS ── */
+function SavedCardsSection({ userId }: { userId: string }) {
+  const [cards, setCards] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMySavedCards()
+      .then(d => setCards(Array.isArray(d) ? d : []))
+      .catch(() => setCards([]))
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-jiang-cheng text-foreground text-xl font-bold">Saqlangan Kartalar</h2>
+
+      {loading ? <Skeleton className="h-40 bg-muted rounded-sm" /> : cards.length === 0 ? (
+        <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient space-y-3">
+          <CreditCard className="w-10 h-10 text-primary/30 mx-auto" />
+          <p className="text-muted-foreground text-sm">Saqlangan karta yo&apos;q</p>
+          <p className="text-xs text-muted-foreground/60">
+            To&apos;lov jarayonida kartani saqlash imkoniyati mavjud
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {cards.map((card, i) => {
+            const brand    = String(card.brand || 'card').toUpperCase();
+            const last4    = String(card.last4 || '••••');
+            const expMonth = String(card.exp_month || '').padStart(2, '0');
+            const expYear  = String(card.exp_year || '').slice(-2);
+            const isDef    = Boolean(card.is_default);
+            return (
+              <div key={String(card.id || i)} className="glass-card border-ancient rounded-sm p-4 card-ancient flex items-center gap-4">
+                <div className="w-12 h-8 bg-primary/10 border border-primary/20 rounded flex items-center justify-center shrink-0">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-jiang-cheng text-foreground font-bold text-sm">{brand} •••• {last4}</span>
+                    {isDef && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-sm border text-primary bg-primary/10 border-primary/20">
+                        Asosiy
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Muddati: {expMonth}/{expYear}</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
