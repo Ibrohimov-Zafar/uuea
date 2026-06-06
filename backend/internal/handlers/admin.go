@@ -139,9 +139,10 @@ func (a *API) AdminUpsertBusiness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id = uuid.NewString()
+	ownerID := nullIfEmpty(str(body["owner_id"]))
 	_, err := a.DB.Exec(`INSERT INTO businesses (id, owner_id, name, category, description, website, phone, email, address, logo_url, region, is_vip, is_active, created_at, updated_at)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		id, str(body["owner_id"]), str(body["name"]), str(body["category"]), str(body["description"]),
+		id, ownerID, str(body["name"]), str(body["category"]), str(body["description"]),
 		str(body["website"]), str(body["phone"]), str(body["email"]), str(body["address"]), str(body["logo_url"]), str(body["region"]),
 		boolInt(isVIP), boolInt(isActive), now, now)
 	if err != nil {
@@ -185,7 +186,7 @@ func (a *API) AdminReviewSubmission(w http.ResponseWriter, r *http.Request) {
 			bid := uuid.NewString()
 			_, _ = a.DB.Exec(`INSERT INTO businesses (id, owner_id, name, category, description, website, phone, email, address, logo_url, is_active, created_at, updated_at)
 				VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)`,
-				bid, str(sub["owner_id"]), str(sub["name"]), str(sub["category"]), str(sub["description"]),
+				bid, nullIfEmpty(str(sub["owner_id"])), str(sub["name"]), str(sub["category"]), str(sub["description"]),
 				str(sub["website"]), str(sub["phone"]), str(sub["email"]), str(sub["address"]), str(sub["logo_url"]), now, now)
 		}
 	}
