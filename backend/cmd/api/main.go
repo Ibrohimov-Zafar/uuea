@@ -137,50 +137,79 @@ func main() {
 	r.Post("/stripe/verify-payment", api.StripeVerifyPayment)
 	r.Post("/stripe/event-checkout", api.EventCheckout)
 
+	// Admin group — kontent boshqaruvi (har ikki admin)
 	r.Group(func(ar chi.Router) {
 		ar.Use(auth)
 		ar.Use(admin)
+
+		// Read (stats, lists)
 		ar.Get("/admin/stats", api.AdminStats)
 		ar.Get("/admin/list", api.AdminList)
-		ar.Post("/admin/businesses", api.AdminUpsertBusiness)
-		ar.Delete("/admin/businesses", api.AdminDeleteBusiness)
-		ar.Post("/admin/submissions/review", api.AdminReviewSubmission)
-		ar.Post("/admin/events", api.AdminUpsertEvent)
-		ar.Delete("/admin/events", api.AdminDeleteEvent)
-		ar.Post("/admin/notifications", api.AdminSendNotifications)
 		ar.Get("/admin/news", api.AdminListNews)
+		ar.Get("/admin/legal-resources", api.AdminListLegalResources)
+		ar.Get("/admin/hero-leads", api.AdminHeroLeads)
+		ar.Get("/admin/campaigns", api.AdminCampaigns)
+		ar.Get("/admin/memberships", api.AdminMembershipsForUsers)
+
+		// Yangiliklar boshqaruvi
 		ar.Post("/admin/news/review", api.AdminReviewNews)
 		ar.Delete("/admin/news", api.AdminDeleteNews)
-		ar.Get("/admin/legal-resources", api.AdminListLegalResources)
+
+		// Qonunlar boshqaruvi
 		ar.Post("/admin/legal-resources", api.AdminUpsertLegalResource)
 		ar.Delete("/admin/legal-resources", api.AdminDeleteLegalResource)
-		ar.Get("/admin/hero-leads", api.AdminHeroLeads)
+
+		// Bildirishnomalar yuborish
+		ar.Post("/admin/notifications", api.AdminSendNotifications)
+
+		// Email obunalar
 		ar.Delete("/admin/hero-leads", api.AdminDeleteHeroLead)
 		ar.Post("/admin/hero-leads/import", api.AdminImportHeroLeads)
+
+		// Aloqa xabarlari
 		ar.Delete("/admin/contact-messages", api.AdminDeleteContactMessage)
-		ar.Get("/admin/campaigns", api.AdminCampaigns)
+
+		// Kampaniyalar
 		ar.Post("/admin/campaigns", api.AdminCreateCampaign)
 		ar.Post("/admin/campaigns/cancel", api.AdminCancelCampaign)
-		ar.Get("/admin/memberships", api.AdminMembershipsForUsers)
-		ar.Post("/admin/update", api.GenericUpdate)
-		ar.Post("/admin/partners", api.AdminUpsertPartner)
-		ar.Delete("/admin/partners", api.AdminDeletePartner)
-		ar.Post("/admin/testimonials", api.AdminUpsertTestimonial)
-		ar.Delete("/admin/testimonials", api.AdminDeleteTestimonial)
-		ar.Post("/admin/site-stats", api.AdminUpsertSiteStat)
-		ar.Delete("/admin/site-stats", api.AdminDeleteSiteStat)
-		ar.Post("/admin/site-services", api.AdminUpsertSiteService)
-		ar.Delete("/admin/site-services", api.AdminDeleteSiteService)
+
+		// A'zolik arizalari
+		ar.Post("/admin/submissions/review", api.AdminReviewSubmission)
 	})
 
-	// Super admin only (role/user management)
+	// Super admin only — kritik boshqaruv
 	r.Group(func(sr chi.Router) {
 		sr.Use(auth)
 		sr.Use(middleware.RequireSuperAdmin)
+
+		// Foydalanuvchilar
 		sr.Patch("/admin/users", api.AdminUpdateUser)
 		sr.Delete("/admin/users", api.AdminDeleteUser)
+
+		// Biznes katalogi
+		sr.Post("/admin/businesses", api.AdminUpsertBusiness)
+		sr.Delete("/admin/businesses", api.AdminDeleteBusiness)
+
+		// Tadbirlar
+		sr.Post("/admin/events", api.AdminUpsertEvent)
+		sr.Delete("/admin/events", api.AdminDeleteEvent)
+
+		// A'zolik rejalari (tariflar)
 		sr.Post("/admin/plans", api.AdminUpsertPlan)
 		sr.Delete("/admin/plans", api.AdminDeletePlan)
+
+		// Generic update
+		sr.Post("/admin/update", api.GenericUpdate)
+
+		// Bosh sahifa kontenti
+		sr.Post("/admin/partners", api.AdminUpsertPartner)
+		sr.Delete("/admin/partners", api.AdminDeletePartner)
+		sr.Post("/admin/testimonials", api.AdminUpsertTestimonial)
+		sr.Delete("/admin/testimonials", api.AdminDeleteTestimonial)
+		sr.Post("/admin/site-stats", api.AdminUpsertSiteStat)
+		sr.Delete("/admin/site-stats", api.AdminDeleteSiteStat)
+		sr.Post("/admin/site-services", api.AdminUpsertSiteService)
+		sr.Delete("/admin/site-services", api.AdminDeleteSiteService)
 	})
 
 	addr := fmt.Sprintf(":%d", cfg.Port)

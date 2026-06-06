@@ -58,16 +58,16 @@ const LANGS: { code: Lang; label: string }[] = [
 ];
 
 const NAV_ITEMS = [
-  { id: 'overview',    icon: LayoutDashboard, key: 'overview' as const,          adminOnly: false },
-  { id: 'membership',  icon: Star,            key: 'membershipLabel' as const,   adminOnly: false },
-  { id: 'events',      icon: Calendar,        key: 'eventsLabel' as const,       adminOnly: false },
-  { id: 'catalog',     icon: Building,        key: 'catalogProfile' as const,    adminOnly: false },
-  { id: 'business',    icon: Building2,       key: 'businessSubmission' as const, adminOnly: false },
-  { id: 'billing',     icon: CreditCard,      key: 'billing' as const,           adminOnly: false },
-  { id: 'cards',       icon: BadgeCheck,      key: 'savedCards' as const,        adminOnly: false },
-  { id: 'campaigns',   icon: Megaphone,       key: 'campaigns' as const,         adminOnly: true  },
-  { id: 'messages',    icon: MessageSquare,   key: 'messages' as const,          adminOnly: false },
-  { id: 'settings',    icon: Settings,        key: 'settings' as const,          adminOnly: false },
+  { id: 'overview',   icon: LayoutDashboard, key: 'overview' as const,           superOnly: false, adminOnly: false },
+  { id: 'membership', icon: Star,            key: 'membershipLabel' as const,    superOnly: false, adminOnly: false },
+  { id: 'events',     icon: Calendar,        key: 'eventsLabel' as const,        superOnly: false, adminOnly: false },
+  { id: 'catalog',    icon: Building,        key: 'catalogProfile' as const,     superOnly: false, adminOnly: false },
+  { id: 'business',   icon: Building2,       key: 'businessSubmission' as const, superOnly: false, adminOnly: false },
+  { id: 'billing',    icon: CreditCard,      key: 'billing' as const,            superOnly: false, adminOnly: false },
+  { id: 'cards',      icon: BadgeCheck,      key: 'savedCards' as const,         superOnly: false, adminOnly: false },
+  { id: 'campaigns',  icon: Megaphone,       key: 'campaigns' as const,          superOnly: true,  adminOnly: true  },
+  { id: 'messages',   icon: MessageSquare,   key: 'messages' as const,           superOnly: false, adminOnly: false },
+  { id: 'settings',   icon: Settings,        key: 'settings' as const,           superOnly: false, adminOnly: false },
 ] as const;
 
 export default function DashboardPage() {
@@ -235,7 +235,9 @@ export default function DashboardPage() {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => (
+          {NAV_ITEMS.filter(item =>
+            !item.adminOnly || (item.superOnly ? isSuperAdmin : isAdmin)
+          ).map(item => (
             <button key={item.id} onClick={() => goTo(item.id as Section)}
               className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm transition-all text-left',
                 section === item.id
@@ -244,8 +246,8 @@ export default function DashboardPage() {
               )}>
               <item.icon className="w-4 h-4 shrink-0" />
               {t(item.key)}
-              {item.adminOnly && (
-                <span className="ml-1 text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded-sm font-semibold">ADM</span>
+              {item.superOnly && (
+                <span className="ml-1 text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded-sm font-semibold">SA</span>
               )}
               {section === item.id && <ChevronRight className="w-3 h-3 ml-auto" />}
             </button>
@@ -293,12 +295,17 @@ export default function DashboardPage() {
               ))}
             </div>
             <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-              {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => (
+              {NAV_ITEMS.filter(item =>
+                !item.adminOnly || (item.superOnly ? isSuperAdmin : isAdmin)
+              ).map(item => (
                 <button key={item.id} onClick={() => goTo(item.id as Section)}
                   className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-sm transition-all text-left',
                     section === item.id ? 'bg-sidebar-accent text-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent'
                   )}>
                   <item.icon className="w-4 h-4" />{t(item.key)}
+                  {item.superOnly && (
+                    <span className="ml-1 text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded-sm font-semibold">SA</span>
+                  )}
                 </button>
               ))}
             </nav>
@@ -366,7 +373,7 @@ export default function DashboardPage() {
           {section === 'business'  && <BusinessSection userId={user.id} />}
           {section === 'billing'   && <BillingSection userId={user.id} />}
           {section === 'cards'     && <SavedCardsSection userId={user.id} />}
-          {section === 'campaigns' && isAdmin && <CampaignsDashSection />}
+          {section === 'campaigns' && isSuperAdmin && <CampaignsDashSection />}
           {section === 'messages'  && <MessagesSection />}
           {section === 'settings'  && <SettingsSection profile={profile} onSaved={refreshProfile} />}
         </div>

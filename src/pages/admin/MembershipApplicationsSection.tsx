@@ -25,7 +25,7 @@ type App = {
   created_at: string;
 };
 
-export default function MembershipApplicationsSection() {
+export default function MembershipApplicationsSection({ canManage: _canManage }: { canManage: boolean }) {
   const [rows, setRows] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);

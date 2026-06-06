@@ -21,7 +21,7 @@ type ContactMsg = {
   created_at: string;
 };
 
-export default function ContactMessagesSection() {
+export default function ContactMessagesSection({ canManage }: { canManage: boolean }) {
   const [messages, setMessages] = useState<ContactMsg[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -88,14 +88,16 @@ export default function ContactMessagesSection() {
                   >
                     {expanded === m.id ? 'Yopish' : "O'qish"}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive rounded-sm"
-                    onClick={() => setDeleteId(m.id)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  {canManage && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive rounded-sm"
+                      onClick={() => setDeleteId(m.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

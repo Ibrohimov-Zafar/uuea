@@ -45,7 +45,7 @@ const emptyForm = (): LegalResourcePayload => ({
   status: 'published',
 });
 
-export default function LegalAdminSection() {
+export default function LegalAdminSection({ canManage }: { canManage: boolean }) {
   const [items, setItems] = useState<LegalResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,9 +125,11 @@ export default function LegalAdminSection() {
           <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 rounded-sm">
             <RefreshCw className="w-4 h-4" />
           </Button>
-          <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground rounded-sm">
-            <Plus className="w-4 h-4 mr-1" /> Yangi material
-          </Button>
+          {canManage && (
+            <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground rounded-sm">
+              <Plus className="w-4 h-4 mr-1" /> Yangi material
+            </Button>
+          )}
         </div>
       </div>
 
@@ -173,24 +175,26 @@ export default function LegalAdminSection() {
                       {n.published_date}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <Button
-                          onClick={() => openEdit(n)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-primary rounded-sm"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          onClick={() => setDeleteId(n.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive rounded-sm"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            onClick={() => openEdit(n)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-primary rounded-sm"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            onClick={() => setDeleteId(n.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive rounded-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

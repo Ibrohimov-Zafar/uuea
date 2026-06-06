@@ -376,18 +376,22 @@ export default function AdminPage() {
               {navItems.find(n => n.id === section)?.label}
             </h1>
           </div>
-          {section === 'dashboard'   && <DashboardSection />}
-          {section === 'members'     && <MembersSection canManageUsers={isSuperAdmin} />}
-          {section === 'businesses'  && <BusinessesSection />}
-          {section === 'submissions' && <SubmissionsSection />}
-          {section === 'events'      && <EventsSection />}
-          {section === 'notifications' && <NotificationsSection />}
-          {section === 'leads'         && <LeadsSection />}
-          {section === 'contact'       && <ContactMessagesSection />}
-          {section === 'applications'  && <MembershipApplicationsSection />}
-          {section === 'campaigns'     && <CampaignsSection />}
-          {section === 'news'          && <NewsAdminSection />}
-          {section === 'legal'         && <LegalAdminSection />}
+          {section === 'dashboard'     && <DashboardSection />}
+          {/* Super admin: foydalanuvchi rollarini boshqarish */}
+          {section === 'members'       && <MembersSection canManageUsers={isSuperAdmin} />}
+          {/* Super admin: katalog va tadbir boshqaruvi */}
+          {section === 'businesses'    && <BusinessesSection canManage={isSuperAdmin} />}
+          {section === 'submissions'   && <SubmissionsSection canManage={isSuperAdmin} />}
+          {section === 'events'        && <EventsSection canManage={isSuperAdmin} />}
+          {/* Har ikki admin: kontent boshqaruvi */}
+          {section === 'notifications' && <NotificationsSection canManage={isAdmin} />}
+          {section === 'leads'         && <LeadsSection canManage={isAdmin} />}
+          {section === 'contact'       && <ContactMessagesSection canManage={isAdmin} />}
+          {section === 'applications'  && <MembershipApplicationsSection canManage={isAdmin} />}
+          {section === 'campaigns'     && <CampaignsSection canManage={isAdmin} />}
+          {section === 'news'          && <NewsAdminSection canManage={isAdmin} />}
+          {section === 'legal'         && <LegalAdminSection canManage={isAdmin} />}
+          {/* Super admin: tarif rejalari */}
           {section === 'plans'         && <PlansAdminSection />}
         </div>
       </div>
@@ -850,7 +854,7 @@ function MembersSection({ canManageUsers }: { canManageUsers: boolean }) {
 }
 
 /* ══ BUSINESSES SECTION ═══════════════════════════════════════ */
-function BusinessesSection() {
+function BusinessesSection({ canManage }: { canManage: boolean }) {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -921,7 +925,7 @@ function BusinessesSection() {
           <Input placeholder="Qidirish..." value={query} onChange={e => setQuery(e.target.value)} className="pl-9 bg-background/60 border-border/60 rounded-sm" />
         </div>
         <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground hover:text-foreground rounded-sm"><RefreshCw className="w-4 h-4" /></Button>
-        <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo'shish</Button>
+        {canManage && <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo'shish</Button>}
       </div>
 
       <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
@@ -953,10 +957,10 @@ function BusinessesSection() {
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
+                      {canManage && <div className="flex items-center gap-1">
                         <Button onClick={() => openEdit(b)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button onClick={() => setDeleteId(b.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
-                      </div>
+                      </div>}
                     </td>
                   </tr>
                 ))
@@ -1034,7 +1038,7 @@ function BusinessesSection() {
 }
 
 /* ══ SUBMISSIONS SECTION ══════════════════════════════════════ */
-function SubmissionsSection() {
+function SubmissionsSection({ canManage }: { canManage: boolean }) {
   const [submissions, setSubmissions] = useState<BusinessSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
@@ -1120,7 +1124,7 @@ function SubmissionsSection() {
                 </div>
                 <div className="text-[11px] text-muted-foreground/60">{new Date(sub.created_at).toLocaleDateString('uz-UZ')}</div>
               </div>
-              {sub.status === 'pending' && (
+              {sub.status === 'pending' && canManage && (
                 <div className="flex items-center gap-1 shrink-0">
                   <Button onClick={() => { setSelected(sub); setNote(''); }} variant="ghost" size="sm"
                     className="border border-border/40 text-muted-foreground hover:text-foreground rounded-sm text-xs h-8 px-3">
@@ -1172,14 +1176,18 @@ function SubmissionsSection() {
           )}
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setSelected(null)} className="border border-border/40 text-muted-foreground rounded-sm">Yopish</Button>
-            <Button onClick={() => handleReview('rejected')} disabled={processing}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">
-              {t('reject')}
-            </Button>
-            <Button onClick={() => handleReview('approved')} disabled={processing}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
-              {t('approve')}
-            </Button>
+            {canManage && (
+              <>
+                <Button onClick={() => handleReview('rejected')} disabled={processing}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">
+                  {t('reject')}
+                </Button>
+                <Button onClick={() => handleReview('approved')} disabled={processing}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
+                  {t('approve')}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1188,7 +1196,7 @@ function SubmissionsSection() {
 }
 
 /* ══ EVENTS SECTION ══════════════════════════════════════════ */
-function EventsSection() {
+function EventsSection({ canManage }: { canManage: boolean }) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -1276,7 +1284,7 @@ function EventsSection() {
         <Button onClick={() => { const rows = filtered.map(ev => ({ 'Sarlavha': ev.title, 'Kategoriya': ev.category, 'Sana': ev.event_date, 'Vaqt': ev.event_time || '', 'Joylashuv': ev.location, 'Narx ($)': ev.price_usd, 'Jami Joylar': ev.spots_total, "Bosh Joylar": ev.spots_remaining, 'Featured': ev.is_featured ? 'Ha' : "Yoq" })); exportToXLSX(rows, 'tadbirlar.xlsx'); }} variant="ghost" size="sm" className="border border-primary/30 text-primary hover:bg-primary/10 rounded-sm gap-1.5 text-xs">
           <FileSpreadsheet className="w-3.5 h-3.5" />Excel
         </Button>
-        <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo'shish</Button>
+        {canManage && <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo'shish</Button>}
       </div>
 
       <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
@@ -1311,10 +1319,10 @@ function EventsSection() {
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">{ev.spots_remaining}/{ev.spots_total}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
+                      {canManage && <div className="flex items-center gap-1">
                         <Button onClick={() => openEdit(ev)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button onClick={() => setDeleteId(ev.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
-                      </div>
+                      </div>}
                     </td>
                   </tr>
                 ))
@@ -1419,7 +1427,7 @@ function EventsSection() {
 }
 
 /* ══ NOTIFICATIONS SECTION ════════════════════════════════════ */
-function NotificationsSection() {
+function NotificationsSection({ canManage }: { canManage: boolean }) {
   const [members, setMembers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -1550,108 +1558,116 @@ function NotificationsSection() {
 
   return (
     <div className="space-y-6">
-      {/* Templates */}
-      <div className="glass-card border-ancient rounded-sm p-4 card-ancient">
-        <div className="flex items-center gap-2 mb-3">
-          <ChevronDownIcon className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tayyor Shablonlar</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {TEMPLATES.map(tpl => (
-            <button
-              key={tpl.label}
-              onClick={() => applyTemplate(tpl)}
-              className="text-left p-3 rounded-sm border border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all group"
-            >
-              <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">{tpl.label}</p>
-              <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{tpl.body}</p>
-              <span className={`text-[9px] mt-1.5 inline-block px-1.5 py-0.5 rounded-sm border font-semibold ${typeColor(tpl.type)} bg-current/5 border-current/20`}>
-                {TYPE_OPTIONS.find(o => o.value === tpl.type)?.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Compose card */}
-      <div className="glass-card border-ancient rounded-sm p-5 card-ancient space-y-4">
-        <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-primary" />
-          <h3 className="font-jiang-cheng text-foreground font-bold text-sm">Yangi Bildirishnoma</h3>
-        </div>
-
-        {/* Type selector */}
-        <div className="flex flex-wrap gap-2">
-          {TYPE_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setForm(f => ({ ...f, type: opt.value }))}
-              className={cn(
-                'px-3 py-1.5 text-xs rounded-sm border transition-all',
-                form.type === opt.value
-                  ? 'bg-primary/15 border-primary/50 text-primary'
-                  : 'border-border/40 text-muted-foreground hover:border-border/60 hover:text-foreground'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs font-normal text-muted-foreground">Sarlavha *</Label>
-            <Input
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="Bildirishnoma sarlavhasi..."
-              className="bg-background/60 border-border/60 rounded-sm text-sm"
-            />
+      {canManage ? (
+        <>
+          {/* Templates */}
+          <div className="glass-card border-ancient rounded-sm p-4 card-ancient">
+            <div className="flex items-center gap-2 mb-3">
+              <ChevronDownIcon className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tayyor Shablonlar</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {TEMPLATES.map(tpl => (
+                <button
+                  key={tpl.label}
+                  onClick={() => applyTemplate(tpl)}
+                  className="text-left p-3 rounded-sm border border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                >
+                  <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">{tpl.label}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{tpl.body}</p>
+                  <span className={`text-[9px] mt-1.5 inline-block px-1.5 py-0.5 rounded-sm border font-semibold ${typeColor(tpl.type)} bg-current/5 border-current/20`}>
+                    {TYPE_OPTIONS.find(o => o.value === tpl.type)?.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-normal text-muted-foreground">Havola (ixtiyoriy)</Label>
-            <Input
-              value={form.link}
-              onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
-              placeholder="/tadbirlar yoki https://..."
-              className="bg-background/60 border-border/60 rounded-sm text-sm"
-            />
-          </div>
-        </div>
 
-        <div className="space-y-1.5">
-          <Label className="text-xs font-normal text-muted-foreground">Xabar matni *</Label>
-          <textarea
-            value={form.body}
-            onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
-            placeholder="A'zolarga yuboriladigan xabar..."
-            rows={3}
-            className="w-full bg-background/60 border border-border/60 rounded-sm text-sm px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
-          />
-        </div>
+          {/* Compose card */}
+          <div className="glass-card border-ancient rounded-sm p-5 card-ancient space-y-4">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-primary" />
+              <h3 className="font-jiang-cheng text-foreground font-bold text-sm">Yangi Bildirishnoma</h3>
+            </div>
 
-        {/* Recipient summary + send */}
-        <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Send className="w-3.5 h-3.5 text-primary" />
-            {selectedIds.size > 0
-              ? <span><span className="text-primary font-semibold">{selectedIds.size}</span> ta tanlangan a&apos;zoga yuboriladi</span>
-              : <span>Tanlash bo&apos;lmasa <span className="text-primary font-semibold">barcha {members.length}</span> a&apos;zoga yuboriladi</span>
-            }
+            {/* Type selector */}
+            <div className="flex flex-wrap gap-2">
+              {TYPE_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setForm(f => ({ ...f, type: opt.value }))}
+                  className={cn(
+                    'px-3 py-1.5 text-xs rounded-sm border transition-all',
+                    form.type === opt.value
+                      ? 'bg-primary/15 border-primary/50 text-primary'
+                      : 'border-border/40 text-muted-foreground hover:border-border/60 hover:text-foreground'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Sarlavha *</Label>
+                <Input
+                  value={form.title}
+                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Bildirishnoma sarlavhasi..."
+                  className="bg-background/60 border-border/60 rounded-sm text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Havola (ixtiyoriy)</Label>
+                <Input
+                  value={form.link}
+                  onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
+                  placeholder="/tadbirlar yoki https://..."
+                  className="bg-background/60 border-border/60 rounded-sm text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Xabar matni *</Label>
+              <textarea
+                value={form.body}
+                onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+                placeholder="A'zolarga yuboriladigan xabar..."
+                rows={3}
+                className="w-full bg-background/60 border border-border/60 rounded-sm text-sm px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+              />
+            </div>
+
+            {/* Recipient summary + send */}
+            <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Send className="w-3.5 h-3.5 text-primary" />
+                {selectedIds.size > 0
+                  ? <span><span className="text-primary font-semibold">{selectedIds.size}</span> ta tanlangan a&apos;zoga yuboriladi</span>
+                  : <span>Tanlash bo&apos;lmasa <span className="text-primary font-semibold">barcha {members.length}</span> a&apos;zoga yuboriladi</span>
+                }
+              </div>
+              <Button
+                onClick={handleSend}
+                disabled={sending || !form.title.trim() || !form.body.trim()}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-2"
+              >
+                {sending ? (
+                  <><div className="w-3.5 h-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />Yuborilmoqda...</>
+                ) : (
+                  <><Send className="w-3.5 h-3.5" />Yuborish</>
+                )}
+              </Button>
+            </div>
           </div>
-          <Button
-            onClick={handleSend}
-            disabled={sending || !form.title.trim() || !form.body.trim()}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-2"
-          >
-            {sending ? (
-              <><div className="w-3.5 h-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />Yuborilmoqda...</>
-            ) : (
-              <><Send className="w-3.5 h-3.5" />Yuborish</>
-            )}
-          </Button>
+        </>
+      ) : (
+        <div className="glass-card border-ancient rounded-sm p-8 text-center card-ancient">
+          <p className="text-muted-foreground text-sm">Bu bo&apos;lim faqat super admin uchun</p>
         </div>
-      </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Members list for targeting */}
@@ -1775,7 +1791,7 @@ const SOURCE_LABELS: Record<string, string> = {
   import:    'Import',
 };
 
-function LeadsSection() {
+function LeadsSection({ canManage }: { canManage: boolean }) {
   const [leads, setLeads]         = useState<Lead[]>([]);
   const [loading, setLoading]     = useState(true);
   const [query, setQuery]         = useState('');
@@ -1954,13 +1970,15 @@ function LeadsSection() {
               <Send className="w-3.5 h-3.5" />
               {selected.size > 0 ? `${selected.size} taga` : 'Kampaniya'}
             </Button>
-            <label className="cursor-pointer">
-              <input type="file" accept=".csv,.txt" className="hidden" onChange={handleCsvImport} disabled={importing} />
-              <span className={cn("inline-flex items-center gap-1.5 h-8 px-3 text-xs rounded-sm border transition-colors", importing ? "opacity-50 cursor-not-allowed border-border/40 text-muted-foreground" : "border-border/50 text-muted-foreground hover:text-foreground cursor-pointer")}>
-                <UploadCloud className="w-3.5 h-3.5" />
-                {importing ? 'Import...' : 'CSV Import'}
-              </span>
-            </label>
+            {canManage && (
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv,.txt" className="hidden" onChange={handleCsvImport} disabled={importing} />
+                <span className={cn("inline-flex items-center gap-1.5 h-8 px-3 text-xs rounded-sm border transition-colors", importing ? "opacity-50 cursor-not-allowed border-border/40 text-muted-foreground" : "border-border/50 text-muted-foreground hover:text-foreground cursor-pointer")}>
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  {importing ? 'Import...' : 'CSV Import'}
+                </span>
+              </label>
+            )}
             <Button onClick={load} variant="ghost"
               className="h-8 w-8 p-0 border border-border/40 text-muted-foreground hover:text-foreground rounded-sm">
               <RefreshCw className="w-3.5 h-3.5" />
@@ -2139,10 +2157,12 @@ function LeadsSection() {
                         {new Date(l.created_at).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <Button variant="ghost" onClick={() => setDeleteId(l.id)}
-                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        {canManage && (
+                          <Button variant="ghost" onClick={() => setDeleteId(l.id)}
+                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -2224,7 +2244,7 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Bekor qilindi",
 };
 
-function CampaignsSection() {
+function CampaignsSection({ canManage }: { canManage: boolean }) {
   const [campaigns, setCampaigns]       = useState<Campaign[]>([]);
   const [loading, setLoading]           = useState(true);
   const [showForm, setShowForm]         = useState(false);
@@ -2334,17 +2354,19 @@ function CampaignsSection() {
               className="h-8 w-8 p-0 border border-border/40 text-muted-foreground hover:text-foreground rounded-sm">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
-            <Button onClick={() => setShowForm(v => !v)}
-              className="h-8 px-4 text-xs bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-1.5">
-              <CalendarClock className="w-3.5 h-3.5" />
-              Yangi Kampaniya
-            </Button>
+            {canManage && (
+              <Button onClick={() => setShowForm(v => !v)}
+                className="h-8 px-4 text-xs bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-1.5">
+                <CalendarClock className="w-3.5 h-3.5" />
+                Yangi Kampaniya
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
       {/* ── Create Form ── */}
-      {showForm && (
+      {canManage && showForm && (
         <div className="glass-card border-ancient rounded-sm p-5 card-ancient space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <CalendarClock className="w-4 h-4 text-primary" />
@@ -2516,7 +2538,7 @@ function CampaignsSection() {
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right" onClick={e => e.stopPropagation()}>
-                          {c.status === 'scheduled' && (
+                          {canManage && c.status === 'scheduled' && (
                             <Button variant="ghost" onClick={() => setCancelId(c.id)}
                               className="h-7 px-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm gap-1">
                               <XCircle className="w-3.5 h-3.5" />Bekor
@@ -2555,7 +2577,7 @@ function CampaignsSection() {
 }
 
 /* ── NEWS (SUPER ADMIN) ── */
-function NewsAdminSection() {
+function NewsAdminSection({ canManage }: { canManage: boolean }) {
   const [items, setItems] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -2642,15 +2664,17 @@ function NewsAdminSection() {
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('uz-UZ')}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        {n.status === 'pending' && (
-                          <>
-                            <Button onClick={() => review(n.id, 'approved')} variant="ghost" size="sm" className="h-7 px-2 text-green-400 hover:bg-green-400/10 rounded-sm text-xs">Approve</Button>
-                            <Button onClick={() => review(n.id, 'rejected')} variant="ghost" size="sm" className="h-7 px-2 text-destructive hover:bg-destructive/10 rounded-sm text-xs">Reject</Button>
-                          </>
-                        )}
-                        <Button onClick={() => del(n.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
-                      </div>
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          {n.status === 'pending' && (
+                            <>
+                              <Button onClick={() => review(n.id, 'approved')} variant="ghost" size="sm" className="h-7 px-2 text-green-400 hover:bg-green-400/10 rounded-sm text-xs">Approve</Button>
+                              <Button onClick={() => review(n.id, 'rejected')} variant="ghost" size="sm" className="h-7 px-2 text-destructive hover:bg-destructive/10 rounded-sm text-xs">Reject</Button>
+                            </>
+                          )}
+                          <Button onClick={() => del(n.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
