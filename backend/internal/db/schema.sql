@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS legal_resources (
   category TEXT NOT NULL,
   resource_type TEXT NOT NULL DEFAULT 'law',
   source TEXT NOT NULL,
+  source_url TEXT,
   published_date TEXT NOT NULL,
   is_featured INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'published',
@@ -299,6 +300,11 @@ CREATE INDEX IF NOT EXISTS idx_events_active ON events(is_active);
 CREATE TABLE IF NOT EXISTS partners (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  name_ru TEXT,
+  name_en TEXT,
+  description TEXT NOT NULL DEFAULT '',
+  description_ru TEXT,
+  description_en TEXT,
   logo_url TEXT,
   website TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -343,6 +349,72 @@ CREATE TABLE IF NOT EXISTS site_services (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS team_members (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  role_ru TEXT,
+  role_en TEXT,
+  bio TEXT NOT NULL DEFAULT '',
+  bio_ru TEXT,
+  bio_en TEXT,
+  avatar TEXT NOT NULL DEFAULT '',
+  photo_url TEXT,
+  linkedin TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS timeline_events (
+  id TEXT PRIMARY KEY,
+  year TEXT NOT NULL,
+  title TEXT NOT NULL,
+  title_ru TEXT,
+  title_en TEXT,
+  description TEXT NOT NULL DEFAULT '',
+  description_ru TEXT,
+  description_en TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_partners_active ON partners(is_active);
 CREATE INDEX IF NOT EXISTS idx_testimonials_active ON testimonials(is_active);
 CREATE INDEX IF NOT EXISTS idx_site_services_active ON site_services(is_active);
+CREATE INDEX IF NOT EXISTS idx_team_members_active ON team_members(is_active);
+CREATE INDEX IF NOT EXISTS idx_timeline_events_active ON timeline_events(is_active);
+
+CREATE TABLE IF NOT EXISTS site_about (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  badge TEXT NOT NULL,
+  badge_ru TEXT,
+  badge_en TEXT,
+  title TEXT NOT NULL,
+  title_ru TEXT,
+  title_en TEXT,
+  para1 TEXT NOT NULL,
+  para1_ru TEXT,
+  para1_en TEXT,
+  para2 TEXT NOT NULL,
+  para2_ru TEXT,
+  para2_en TEXT,
+  image_url TEXT,
+  stats TEXT NOT NULL DEFAULT '[]',
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS site_mission (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  badge TEXT NOT NULL,
+  badge_ru TEXT,
+  badge_en TEXT,
+  title TEXT NOT NULL,
+  title_ru TEXT,
+  title_en TEXT,
+  cards TEXT NOT NULL DEFAULT '[]',
+  updated_at TEXT NOT NULL
+);

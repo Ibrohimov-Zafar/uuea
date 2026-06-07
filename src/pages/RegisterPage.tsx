@@ -12,6 +12,17 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signUpWithUsername } = useAuth();
 
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    fullName: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPw, setShowPw] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (!authLoading && user) {
       navigate('/dashboard', { replace: true });
@@ -25,17 +36,6 @@ export default function RegisterPage() {
       </div>
     );
   }
-
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    fullName: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [showPw, setShowPw] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

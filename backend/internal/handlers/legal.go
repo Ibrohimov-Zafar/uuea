@@ -66,6 +66,7 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 		Category      string `json:"category"`
 		ResourceType  string `json:"resource_type"`
 		Source        string `json:"source"`
+		SourceURL     string `json:"source_url"`
 		PublishedDate string `json:"published_date"`
 		IsFeatured    bool   `json:"is_featured"`
 		Status        string `json:"status"`
@@ -93,6 +94,7 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 	if source == "" {
 		source = "UUEA"
 	}
+	sourceURL := nullIfEmpty(strings.TrimSpace(body.SourceURL))
 	pubDate := strings.TrimSpace(body.PublishedDate)
 	if pubDate == "" {
 		pubDate = time.Now().UTC().Format("2006-01-02")
@@ -115,9 +117,9 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(body.ID)
 	if id == "" {
 		id = uuid.NewString()
-		_, err := a.DB.Exec(`INSERT INTO legal_resources (id, title, title_ru, title_en, excerpt, excerpt_ru, excerpt_en, body, body_ru, body_en, category, resource_type, source, published_date, is_featured, status, created_at, updated_at)
-			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-			id, title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, pubDate, feat, status, now, now)
+		_, err := a.DB.Exec(`INSERT INTO legal_resources (id, title, title_ru, title_en, excerpt, excerpt_ru, excerpt_en, body, body_ru, body_en, category, resource_type, source, source_url, published_date, is_featured, status, created_at, updated_at)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			id, title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, sourceURL, pubDate, feat, status, now, now)
 		if err != nil {
 			errJSON(w, http.StatusInternalServerError, "server_error")
 			return
@@ -125,8 +127,8 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"id": id, "created": true})
 		return
 	}
-	_, err := a.DB.Exec(`UPDATE legal_resources SET title=?, title_ru=?, title_en=?, excerpt=?, excerpt_ru=?, excerpt_en=?, body=?, body_ru=?, body_en=?, category=?, resource_type=?, source=?, published_date=?, is_featured=?, status=?, updated_at=? WHERE id=?`,
-		title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, pubDate, feat, status, now, id)
+	_, err := a.DB.Exec(`UPDATE legal_resources SET title=?, title_ru=?, title_en=?, excerpt=?, excerpt_ru=?, excerpt_en=?, body=?, body_ru=?, body_en=?, category=?, resource_type=?, source=?, source_url=?, published_date=?, is_featured=?, status=?, updated_at=? WHERE id=?`,
+		title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, sourceURL, pubDate, feat, status, now, id)
 	if err != nil {
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return

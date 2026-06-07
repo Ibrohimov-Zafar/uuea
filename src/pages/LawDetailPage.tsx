@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Scale, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText } from 'lucide-react';
 import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import LegalSourceMeta from '@/components/common/LegalSourceMeta';
 import { getLegalResource } from '@/api/client';
 import type { LegalResource } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
@@ -109,9 +110,9 @@ export default function LawDetailPage() {
                       <Calendar className="w-3.5 h-3.5 text-primary" /> {displayDate}
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Scale className="w-3.5 h-3.5 text-primary" /> {item.source}
-                  </span>
+                  {item.source && (
+                    <LegalSourceMeta source={item.source} sourceUrl={item.source_url} />
+                  )}
                 </div>
 
                 <div className="section-divider" />

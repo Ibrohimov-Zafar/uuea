@@ -7,7 +7,7 @@ import {
   ShieldCheck, CheckCircle2, XCircle, RefreshCw, Save,
   BarChart2, CheckCircle, AlertCircle, Clock, Download, FileSpreadsheet,
   Bell, Send, MapPin, Filter, ChevronDown as ChevronDownIcon, Mail,
-  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard, MessageSquare, Scale, ClipboardList
+  Megaphone, UploadCloud, Eye, MousePointer, CalendarClock, Newspaper, CreditCard, MessageSquare, Scale, ClipboardList, Award, Info, Target, Heart
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -56,6 +56,19 @@ import {
   adminDeletePlan,
   sendEmail,
   uploadFile,
+  adminTeamMembers,
+  adminUpsertTeamMember,
+  adminDeleteTeamMember,
+  adminTimelineEvents,
+  adminUpsertTimelineEvent,
+  adminDeleteTimelineEvent,
+  adminPartners,
+  adminUpsertPartner,
+  adminDeletePartner,
+  adminGetSiteAbout,
+  adminUpsertSiteAbout,
+  adminGetSiteMission,
+  adminUpsertSiteMission,
 } from '@/api/client';
 import ContactMessagesSection from '@/pages/admin/ContactMessagesSection';
 import MembershipApplicationsSection from '@/pages/admin/MembershipApplicationsSection';
@@ -66,7 +79,7 @@ import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Profile, Business, Event, Membership, NewsPost, MembershipPlanRow } from '@/types/types';
+import type { Profile, Business, Event, Membership, NewsPost, MembershipPlanRow, TeamMember, TimelineEvent, Partner, AboutStat, MissionCard } from '@/types/types';
 
 type Section =
   | 'dashboard'
@@ -81,7 +94,12 @@ type Section =
   | 'applications'
   | 'news'
   | 'legal'
-  | 'plans';
+  | 'plans'
+  | 'team'
+  | 'timeline'
+  | 'partners'
+  | 'about-org'
+  | 'mission';
 
 interface Stats {
   members: number;
@@ -282,6 +300,11 @@ export default function AdminPage() {
   navItems.push({ id: 'legal', label: 'Qonunlar va Qarorlar', icon: <Scale className="w-4 h-4" /> });
   // Only super-admin can manage membership plans / payments-related configuration.
   if (isSuperAdmin) navItems.push({ id: 'plans', label: "A'zolik Rejalari", icon: <CreditCard className="w-4 h-4" /> });
+  if (isSuperAdmin) navItems.push({ id: 'team', label: 'Jamoa va Rahbarlar', icon: <Award className="w-4 h-4" /> });
+  if (isSuperAdmin) navItems.push({ id: 'timeline', label: 'Rivojlanish Tarixi', icon: <Clock className="w-4 h-4" /> });
+  if (isSuperAdmin) navItems.push({ id: 'partners', label: 'Asosiy Hamkorlar', icon: <Building2 className="w-4 h-4" /> });
+  if (isSuperAdmin) navItems.push({ id: 'about-org', label: 'Tashkilot Haqida', icon: <Info className="w-4 h-4" /> });
+  if (isSuperAdmin) navItems.push({ id: 'mission', label: 'Missiya va Vizyon', icon: <Target className="w-4 h-4" /> });
 
   const goTo = (s: Section) => { setSection(s); setMobileOpen(false); };
 
@@ -394,6 +417,11 @@ export default function AdminPage() {
           {section === 'legal'         && <LegalAdminSection canManage={isAdmin} />}
           {/* Super admin: tarif rejalari */}
           {section === 'plans'         && <PlansAdminSection />}
+          {section === 'team'          && isSuperAdmin && <TeamAdminSection />}
+          {section === 'timeline'      && isSuperAdmin && <TimelineAdminSection />}
+          {section === 'partners'      && isSuperAdmin && <PartnersAdminSection />}
+          {section === 'about-org'     && isSuperAdmin && <AboutOrgAdminSection />}
+          {section === 'mission'       && isSuperAdmin && <MissionAdminSection />}
         </div>
       </div>
     </div>
@@ -1953,7 +1981,7 @@ function LeadsSection({ canManage }: { canManage: boolean }) {
     setLeads(slice);
     setSelected(new Set());
     setLoading(false);
-  }, [page, dateFrom, dateTo, sourceFilter]);
+  }, [page, dateFrom, dateTo, sourceFilter, query]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -3046,6 +3074,1206 @@ function NewsAdminSection({ canManage }: { canManage: boolean }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── TEAM (SUPER ADMIN) ── */
+function TeamAdminSection() {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editMember, setEditMember] = useState<TeamMember | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: '', role: '', role_ru: '', role_en: '',
+    bio: '', bio_ru: '', bio_en: '',
+    avatar: '', photo_url: '', linkedin: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setMembers(await adminTeamMembers());
+    } catch {
+      setMembers([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = members.filter(m =>
+    !query || m.name.toLowerCase().includes(query.toLowerCase()) || m.role.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const resetForm = () => setForm({
+    name: '', role: '', role_ru: '', role_en: '',
+    bio: '', bio_ru: '', bio_en: '',
+    avatar: '', photo_url: '', linkedin: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const openAdd = () => { resetForm(); setEditMember(null); setLangTab('uz'); setShowForm(true); };
+  const openEdit = (m: TeamMember) => {
+    setEditMember(m);
+    setForm({
+      name: m.name,
+      role: m.role,
+      role_ru: m.role_ru || '',
+      role_en: m.role_en || '',
+      bio: m.bio || '',
+      bio_ru: m.bio_ru || '',
+      bio_en: m.bio_en || '',
+      avatar: m.avatar || '',
+      photo_url: m.photo_url || '',
+      linkedin: m.linkedin || '',
+      sort_order: String(m.sort_order ?? 0),
+      is_active: m.is_active !== false,
+    });
+    setLangTab('uz');
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.role.trim()) {
+      toast.error('Ism va lavozim majburiy');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminUpsertTeamMember({
+        id: editMember?.id,
+        name: form.name.trim(),
+        role: form.role.trim(),
+        role_ru: form.role_ru.trim() || undefined,
+        role_en: form.role_en.trim() || undefined,
+        bio: form.bio.trim(),
+        bio_ru: form.bio_ru.trim() || undefined,
+        bio_en: form.bio_en.trim() || undefined,
+        avatar: form.avatar.trim().toUpperCase(),
+        photo_url: form.photo_url.trim() || undefined,
+        linkedin: form.linkedin.trim() || undefined,
+        sort_order: Number(form.sort_order) || 0,
+        is_active: form.is_active,
+      });
+      toast.success(editMember ? 'Jamoa a\'zosi yangilandi' : 'Jamoa a\'zosi qo\'shildi');
+      setShowForm(false);
+      load();
+    } catch {
+      toast.error('Saqlashda xatolik');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await adminDeleteTeamMember(deleteId);
+    toast.success('Jamoa a\'zosi o\'chirildi');
+    setDeleteId(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        &quot;Biz haqimizda&quot; sahifasidagi &quot;Jamoa va Rahbarlar&quot; bo&apos;limi shu yerda boshqariladi.
+      </p>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Qidirish..." value={query} onChange={e => setQuery(e.target.value)} className="pl-9 bg-background/60 border-border/60 rounded-sm" />
+        </div>
+        <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground rounded-sm"><RefreshCw className="w-4 h-4" /></Button>
+        <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo&apos;shish</Button>
+      </div>
+
+      <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border/50">
+                {['Ism', 'Lavozim', 'Tartib', 'Holat', 'Amallar'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>{Array.from({ length: 5 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 bg-muted rounded-sm" /></td>)}</tr>
+                ))
+                : filtered.map(m => (
+                  <tr key={m.id} className="hover:bg-accent/5 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        {m.photo_url ? (
+                          <img src={m.photo_url} alt="" className="w-8 h-8 rounded-sm object-cover border border-primary/20" />
+                        ) : (
+                          <div className="w-8 h-8 bg-primary/15 border border-primary/25 rounded-sm flex items-center justify-center text-primary text-xs font-bold">{m.avatar || '?'}</div>
+                        )}
+                        <span className="text-foreground text-sm font-medium">{m.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">{m.role}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">{m.sort_order}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={cn('text-xs px-2 py-0.5 rounded-sm border',
+                        m.is_active !== false ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-muted-foreground bg-muted/20 border-border/30'
+                      )}>
+                        {m.is_active !== false ? 'Faol' : 'Yashirin'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <Button onClick={() => openEdit(m)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button onClick={() => setDeleteId(m.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          {!loading && filtered.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">Hech narsa topilmadi</div>}
+        </div>
+      </div>
+
+      <Dialog open={showForm} onOpenChange={o => !o && setShowForm(false)}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <DialogHeader>
+            <DialogTitle className="font-jiang-cheng text-foreground">{editMember ? 'Jamoa a\'zosini tahrirlash' : 'Yangi jamoa a\'zosi'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">To&apos;liq ism *</Label>
+              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Akbar Mirzayev" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            {langTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Lavozim *</Label>
+                  <Input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="Prezident" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Bio</Label>
+                  <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} rows={3}
+                    placeholder="Qisqa tavsif..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Должность (RU)</Label>
+                  <Input value={form.role_ru} onChange={e => setForm(f => ({ ...f, role_ru: e.target.value }))} placeholder="Президент" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Био (RU)</Label>
+                  <textarea value={form.bio_ru} onChange={e => setForm(f => ({ ...f, bio_ru: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Role (EN)</Label>
+                  <Input value={form.role_en} onChange={e => setForm(f => ({ ...f, role_en: e.target.value }))} placeholder="President" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Bio (EN)</Label>
+                  <textarea value={form.bio_en} onChange={e => setForm(f => ({ ...f, bio_en: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Initials</Label>
+                <Input value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value.toUpperCase() }))} placeholder="AM" maxLength={3} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Tartib raqami</Label>
+                <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Rasm havolasi (ixtiyoriy)</Label>
+              <Input value={form.photo_url} onChange={e => setForm(f => ({ ...f, photo_url: e.target.value }))} placeholder="https://example.com/photo.jpg" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">LinkedIn havolasi</Label>
+              <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="https://linkedin.com/in/..." className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded border-border/60" />
+              Saytda ko&apos;rsatish (faol)
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowForm(false)} className="border border-border/40 text-muted-foreground rounded-sm">Bekor</Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
+              {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={o => !o && setDeleteId(null)}>
+        <AlertDialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-jiang-cheng text-foreground">Jamoa a&apos;zosini o&apos;chirish</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">Bu amalni qaytarib bo&apos;lmaydi.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border border-border/40 text-muted-foreground rounded-sm bg-transparent">Bekor</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">O&apos;chirish</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+/* ── TIMELINE (SUPER ADMIN) ── */
+function TimelineAdminSection() {
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editEvent, setEditEvent] = useState<TimelineEvent | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    year: '', title: '', title_ru: '', title_en: '',
+    description: '', description_ru: '', description_en: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setEvents(await adminTimelineEvents());
+    } catch {
+      setEvents([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = events.filter(e =>
+    !query || e.year.includes(query) || e.title.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const resetForm = () => setForm({
+    year: '', title: '', title_ru: '', title_en: '',
+    description: '', description_ru: '', description_en: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const openAdd = () => { resetForm(); setEditEvent(null); setLangTab('uz'); setShowForm(true); };
+  const openEdit = (e: TimelineEvent) => {
+    setEditEvent(e);
+    setForm({
+      year: e.year,
+      title: e.title,
+      title_ru: e.title_ru || '',
+      title_en: e.title_en || '',
+      description: e.description || '',
+      description_ru: e.description_ru || '',
+      description_en: e.description_en || '',
+      sort_order: String(e.sort_order ?? 0),
+      is_active: e.is_active !== false,
+    });
+    setLangTab('uz');
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.year.trim() || !form.title.trim()) {
+      toast.error('Yil va sarlavha majburiy');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminUpsertTimelineEvent({
+        id: editEvent?.id,
+        year: form.year.trim(),
+        title: form.title.trim(),
+        title_ru: form.title_ru.trim() || undefined,
+        title_en: form.title_en.trim() || undefined,
+        description: form.description.trim(),
+        description_ru: form.description_ru.trim() || undefined,
+        description_en: form.description_en.trim() || undefined,
+        sort_order: Number(form.sort_order) || 0,
+        is_active: form.is_active,
+      });
+      toast.success(editEvent ? 'Tarix yangilandi' : 'Tarix qo\'shildi');
+      setShowForm(false);
+      load();
+    } catch {
+      toast.error('Saqlashda xatolik');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await adminDeleteTimelineEvent(deleteId);
+    toast.success('Tarix o\'chirildi');
+    setDeleteId(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        &quot;Biz haqimizda&quot; sahifasidagi &quot;Rivojlanish Yo&apos;li&quot; timeline shu yerda boshqariladi.
+      </p>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Qidirish..." value={query} onChange={e => setQuery(e.target.value)} className="pl-9 bg-background/60 border-border/60 rounded-sm" />
+        </div>
+        <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground rounded-sm"><RefreshCw className="w-4 h-4" /></Button>
+        <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo&apos;shish</Button>
+      </div>
+
+      <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border/50">
+                {['Yil', 'Sarlavha', 'Tartib', 'Holat', 'Amallar'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>{Array.from({ length: 5 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 bg-muted rounded-sm" /></td>)}</tr>
+                ))
+                : filtered.map(e => (
+                  <tr key={e.id} className="hover:bg-accent/5 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 bg-primary/15 border border-primary/30 rounded-sm text-primary text-xs font-bold">{e.year}</span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground max-w-xs truncate">{e.title}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">{e.sort_order}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={cn('text-xs px-2 py-0.5 rounded-sm border',
+                        e.is_active !== false ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-muted-foreground bg-muted/20 border-border/30'
+                      )}>
+                        {e.is_active !== false ? 'Faol' : 'Yashirin'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <Button onClick={() => openEdit(e)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button onClick={() => setDeleteId(e.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          {!loading && filtered.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">Hech narsa topilmadi</div>}
+        </div>
+      </div>
+
+      <Dialog open={showForm} onOpenChange={o => !o && setShowForm(false)}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <DialogHeader>
+            <DialogTitle className="font-jiang-cheng text-foreground">{editEvent ? 'Tarixni tahrirlash' : 'Yangi tarix qo\'shish'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Yil *</Label>
+                <Input value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="2025" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-normal text-muted-foreground">Tartib raqami</Label>
+                <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              </div>
+            </div>
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            {langTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Sarlavha *</Label>
+                  <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Tashkil Etildi" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Tavsif</Label>
+                  <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3}
+                    placeholder="Qisqa tavsif..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Заголовок (RU)</Label>
+                  <Input value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} placeholder="Основано" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Описание (RU)</Label>
+                  <textarea value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Title (EN)</Label>
+                  <Input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} placeholder="Founded" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Description (EN)</Label>
+                  <textarea value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded border-border/60" />
+              Saytda ko&apos;rsatish (faol)
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowForm(false)} className="border border-border/40 text-muted-foreground rounded-sm">Bekor</Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
+              {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={o => !o && setDeleteId(null)}>
+        <AlertDialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-jiang-cheng text-foreground">Tarixni o&apos;chirish</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">Bu amalni qaytarib bo&apos;lmaydi.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border border-border/40 text-muted-foreground rounded-sm bg-transparent">Bekor</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">O&apos;chirish</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+/* ── PARTNERS (SUPER ADMIN) ── */
+function PartnersAdminSection() {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editPartner, setEditPartner] = useState<Partner | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: '', name_ru: '', name_en: '',
+    description: '', description_ru: '', description_en: '',
+    logo_url: '', website: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setPartners(await adminPartners());
+    } catch {
+      setPartners([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = partners.filter(p =>
+    !query || p.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const resetForm = () => setForm({
+    name: '', name_ru: '', name_en: '',
+    description: '', description_ru: '', description_en: '',
+    logo_url: '', website: '',
+    sort_order: '0', is_active: true,
+  });
+
+  const openAdd = () => { resetForm(); setEditPartner(null); setLangTab('uz'); setShowForm(true); };
+  const openEdit = (p: Partner) => {
+    setEditPartner(p);
+    setForm({
+      name: p.name,
+      name_ru: p.name_ru || '',
+      name_en: p.name_en || '',
+      description: p.description || '',
+      description_ru: p.description_ru || '',
+      description_en: p.description_en || '',
+      logo_url: p.logo_url || '',
+      website: p.website || '',
+      sort_order: String(p.sort_order ?? 0),
+      is_active: p.is_active !== false,
+    });
+    setLangTab('uz');
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast.error('Nom majburiy');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminUpsertPartner({
+        id: editPartner?.id,
+        name: form.name.trim(),
+        name_ru: form.name_ru.trim() || undefined,
+        name_en: form.name_en.trim() || undefined,
+        description: form.description.trim(),
+        description_ru: form.description_ru.trim() || undefined,
+        description_en: form.description_en.trim() || undefined,
+        logo_url: form.logo_url.trim() || undefined,
+        website: form.website.trim() || undefined,
+        sort_order: Number(form.sort_order) || 0,
+        is_active: form.is_active,
+      });
+      toast.success(editPartner ? 'Hamkor yangilandi' : 'Hamkor qo\'shildi');
+      setShowForm(false);
+      load();
+    } catch {
+      toast.error('Saqlashda xatolik');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await adminDeletePartner(deleteId);
+    toast.success('Hamkor o\'chirildi');
+    setDeleteId(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        &quot;Biz haqimizda&quot; va bosh sahifadagi hamkorlar bo&apos;limi shu yerda boshqariladi.
+      </p>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Qidirish..." value={query} onChange={e => setQuery(e.target.value)} className="pl-9 bg-background/60 border-border/60 rounded-sm" />
+        </div>
+        <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground rounded-sm"><RefreshCw className="w-4 h-4" /></Button>
+        <Button onClick={openAdd} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm"><Plus className="w-4 h-4 mr-1.5" />Qo&apos;shish</Button>
+      </div>
+
+      <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border/50">
+                {['Hamkor', 'Sayt', 'Tartib', 'Holat', 'Amallar'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>{Array.from({ length: 5 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 bg-muted rounded-sm" /></td>)}</tr>
+                ))
+                : filtered.map(p => (
+                  <tr key={p.id} className="hover:bg-accent/5 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        {p.logo_url ? (
+                          <img src={p.logo_url} alt="" className="h-8 w-16 object-contain rounded-sm border border-border/30 bg-background/40 p-1" />
+                        ) : (
+                          <div className="h-8 w-16 flex items-center justify-center rounded-sm border border-border/30 bg-background/40 text-xs text-muted-foreground">—</div>
+                        )}
+                        <span className="text-foreground text-sm font-medium">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground max-w-[10rem] truncate">{p.website || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">{p.sort_order}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={cn('text-xs px-2 py-0.5 rounded-sm border',
+                        p.is_active !== false ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-muted-foreground bg-muted/20 border-border/30'
+                      )}>
+                        {p.is_active !== false ? 'Faol' : 'Yashirin'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <Button onClick={() => openEdit(p)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button onClick={() => setDeleteId(p.id)} variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          {!loading && filtered.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">Hech narsa topilmadi</div>}
+        </div>
+      </div>
+
+      <Dialog open={showForm} onOpenChange={o => !o && setShowForm(false)}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <DialogHeader>
+            <DialogTitle className="font-jiang-cheng text-foreground">{editPartner ? 'Hamkorni tahrirlash' : 'Yangi hamkor'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            {langTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Nom *</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Google" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Tavsif</Label>
+                  <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3}
+                    placeholder="Hamkor haqida qisqa ma'lumot..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Название (RU)</Label>
+                  <Input value={form.name_ru} onChange={e => setForm(f => ({ ...f, name_ru: e.target.value }))} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Описание (RU)</Label>
+                  <textarea value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {langTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Name (EN)</Label>
+                  <Input value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Description (EN)</Label>
+                  <textarea value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Logo havolasi</Label>
+              <Input value={form.logo_url} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))} placeholder="https://example.com/logo.png" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              {form.logo_url && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={form.logo_url} alt="logo" className="h-10 max-w-[120px] object-contain rounded-sm border border-border/40 bg-background/40 p-1" />
+                  <button type="button" onClick={() => setForm(f => ({ ...f, logo_url: '' }))} className="text-xs text-destructive hover:underline">O&apos;chirish</button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Sayt havolasi</Label>
+              <Input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://google.com" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Tartib raqami</Label>
+              <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded border-border/60" />
+              Saytda ko&apos;rsatish (faol)
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowForm(false)} className="border border-border/40 text-muted-foreground rounded-sm">Bekor</Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
+              {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={o => !o && setDeleteId(null)}>
+        <AlertDialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-jiang-cheng text-foreground">Hamkorni o&apos;chirish</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">Bu amalni qaytarib bo&apos;lmaydi.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border border-border/40 text-muted-foreground rounded-sm bg-transparent">Bekor</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">O&apos;chirish</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+/* ── ABOUT ORG (SUPER ADMIN) ── */
+const DEFAULT_ABOUT_STATS: AboutStat[] = [
+  { value: '2500+', label: "A'zo Biznes", label_ru: 'Компаний-членов', label_en: 'Member Businesses', sort_order: 1 },
+  { value: '50+', label: 'Yillik Tadbir', label_ru: 'Ежегодных событий', label_en: 'Annual Events', sort_order: 2 },
+  { value: '15+', label: 'Yil Tajriba', label_ru: 'Лет опыта', label_en: 'Years Experience', sort_order: 3 },
+  { value: '10+', label: 'Xalqaro Hamkor', label_ru: 'Международных партнёров', label_en: 'International Partners', sort_order: 4 },
+];
+
+function AboutOrgAdminSection() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [form, setForm] = useState({
+    badge: '', badge_ru: '', badge_en: '',
+    title: '', title_ru: '', title_en: '',
+    para1: '', para1_ru: '', para1_en: '',
+    para2: '', para2_ru: '', para2_en: '',
+    image_url: '',
+    stats: DEFAULT_ABOUT_STATS.map(s => ({ ...s })),
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminGetSiteAbout();
+      if (data) {
+        setForm({
+          badge: data.badge,
+          badge_ru: data.badge_ru || '',
+          badge_en: data.badge_en || '',
+          title: data.title,
+          title_ru: data.title_ru || '',
+          title_en: data.title_en || '',
+          para1: data.para1,
+          para1_ru: data.para1_ru || '',
+          para1_en: data.para1_en || '',
+          para2: data.para2,
+          para2_ru: data.para2_ru || '',
+          para2_en: data.para2_en || '',
+          image_url: data.image_url || '',
+          stats: data.stats?.length ? data.stats.map(s => ({ ...s, label_ru: s.label_ru || '', label_en: s.label_en || '' })) : DEFAULT_ABOUT_STATS.map(s => ({ ...s })),
+        });
+      }
+    } catch {
+      /* keep defaults */
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const updateStat = (idx: number, field: keyof AboutStat, value: string) => {
+    setForm(f => ({
+      ...f,
+      stats: f.stats.map((s, i) => i === idx ? { ...s, [field]: value } : s),
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!form.badge.trim() || !form.title.trim()) {
+      toast.error('Badge va sarlavha majburiy');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminUpsertSiteAbout({
+        badge: form.badge.trim(),
+        badge_ru: form.badge_ru.trim() || undefined,
+        badge_en: form.badge_en.trim() || undefined,
+        title: form.title.trim(),
+        title_ru: form.title_ru.trim() || undefined,
+        title_en: form.title_en.trim() || undefined,
+        para1: form.para1.trim(),
+        para1_ru: form.para1_ru.trim() || undefined,
+        para1_en: form.para1_en.trim() || undefined,
+        para2: form.para2.trim(),
+        para2_ru: form.para2_ru.trim() || undefined,
+        para2_en: form.para2_en.trim() || undefined,
+        image_url: form.image_url.trim() || undefined,
+        stats: form.stats.map((s, i) => ({
+          value: s.value,
+          label: s.label,
+          label_ru: s.label_ru || undefined,
+          label_en: s.label_en || undefined,
+          sort_order: i + 1,
+        })),
+      });
+      toast.success('Tashkilot haqida bo\'limi saqlandi');
+      load();
+    } catch {
+      toast.error('Saqlashda xatolik');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <Skeleton className="h-96 bg-muted rounded-sm" />;
+  }
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <p className="text-sm text-muted-foreground">
+        &quot;Biz haqimizda&quot; sahifasidagi &quot;Tashkilot Haqida&quot; bo&apos;limi — matn, statistika va rasm shu yerda boshqariladi.
+      </p>
+
+      <div className="glass-card border-ancient rounded-sm p-6 card-ancient space-y-5">
+        <div className="flex gap-1 border-b border-border/40 pb-2">
+          {(['uz', 'ru', 'en'] as const).map((l) => (
+            <button key={l} type="button" onClick={() => setLangTab(l)}
+              className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {langTab === 'uz' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge *</Label>
+              <Input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} placeholder="Tashkilot Haqida" className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Sarlavha *</Label>
+              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">1-paragraf</Label>
+              <textarea value={form.para1} onChange={e => setForm(f => ({ ...f, para1: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">2-paragraf</Label>
+              <textarea value={form.para2} onChange={e => setForm(f => ({ ...f, para2: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+          </div>
+        )}
+        {langTab === 'ru' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge (RU)</Label>
+              <Input value={form.badge_ru} onChange={e => setForm(f => ({ ...f, badge_ru: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Заголовок (RU)</Label>
+              <Input value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Параграф 1 (RU)</Label>
+              <textarea value={form.para1_ru} onChange={e => setForm(f => ({ ...f, para1_ru: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Параграф 2 (RU)</Label>
+              <textarea value={form.para2_ru} onChange={e => setForm(f => ({ ...f, para2_ru: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+          </div>
+        )}
+        {langTab === 'en' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge (EN)</Label>
+              <Input value={form.badge_en} onChange={e => setForm(f => ({ ...f, badge_en: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Title (EN)</Label>
+              <Input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Paragraph 1 (EN)</Label>
+              <textarea value={form.para1_en} onChange={e => setForm(f => ({ ...f, para1_en: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Paragraph 2 (EN)</Label>
+              <textarea value={form.para2_en} onChange={e => setForm(f => ({ ...f, para2_en: e.target.value }))} rows={4}
+                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y min-h-[100px]" />
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-border/40 pt-4 space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Rasm havolasi</Label>
+          <Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="/h.png yoki https://..." className="rounded-sm text-sm" />
+          {form.image_url && (
+            <img src={form.image_url} alt="" className="mt-2 max-h-40 rounded-sm border border-border/40 object-cover" />
+          )}
+        </div>
+
+        <div className="border-t border-border/40 pt-4 space-y-3">
+          <Label className="text-sm font-semibold text-foreground">Statistika (4 ta)</Label>
+          {form.stats.map((s, i) => (
+            <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-background/30 border border-border/30 rounded-sm">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Qiymat</Label>
+                <Input value={s.value} onChange={e => updateStat(i, 'value', e.target.value)} className="h-8 text-sm rounded-sm" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Label UZ</Label>
+                <Input value={s.label} onChange={e => updateStat(i, 'label', e.target.value)} className="h-8 text-sm rounded-sm" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Label RU</Label>
+                <Input value={s.label_ru || ''} onChange={e => updateStat(i, 'label_ru', e.target.value)} className="h-8 text-sm rounded-sm" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Label EN</Label>
+                <Input value={s.label_en || ''} onChange={e => updateStat(i, 'label_en', e.target.value)} className="h-8 text-sm rounded-sm" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button onClick={load} variant="ghost" className="border border-border/40 rounded-sm text-sm">Bekor qilish</Button>
+          <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm gap-2">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── MISSION (SUPER ADMIN) ── */
+const DEFAULT_MISSION_CARDS: MissionCard[] = [
+  { icon: 'Target', title: 'Missiyamiz', title_ru: 'Наша миссия', title_en: 'Our Mission', text: "Bizneslarni kuchaytirish, tadbirkorlarni qo'llab-quvvatlash va mintaqa iqtisodiyotini rivojlantirishga xizmat qilish. A'zolarimiz uchun real natijalar yaratish.", text_ru: 'Усиление бизнеса, поддержка предпринимателей и развитие региональной экономики.', text_en: 'Empowering businesses, supporting entrepreneurs, and contributing to regional economic development.', sort_order: 1 },
+  { icon: 'Eye', title: 'Vizyonimiz', title_ru: 'Наше видение', title_en: 'Our Vision', text: "O'zbekistonning eng ta'sirli va ishonchli biznes assotsiatsiyasi bo'lish.", text_ru: 'Стать самой влиятельной бизнес-ассоциацией Узбекистана.', text_en: 'To become the most influential and trusted business association in Uzbekistan.', sort_order: 2 },
+  { icon: 'Heart', title: 'Qadriyatlarimiz', title_ru: 'Наши ценности', title_en: 'Our Values', text: "Halollik, shaffoflik, professionallik va innovatsiya.", text_ru: 'Честность, прозрачность, профессионализм и инновации.', text_en: 'Integrity, transparency, professionalism, and innovation.', sort_order: 3 },
+];
+
+const MISSION_ICON_OPTIONS = [
+  { value: 'Target', label: 'Missiya (Target)' },
+  { value: 'Eye', label: 'Vizyon (Eye)' },
+  { value: 'Heart', label: 'Qadriyat (Heart)' },
+];
+
+function MissionAdminSection() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [form, setForm] = useState({
+    badge: '', badge_ru: '', badge_en: '',
+    title: '', title_ru: '', title_en: '',
+    cards: DEFAULT_MISSION_CARDS.map(c => ({ ...c, title_ru: c.title_ru || '', title_en: c.title_en || '', text_ru: c.text_ru || '', text_en: c.text_en || '' })),
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminGetSiteMission();
+      if (data) {
+        setForm({
+          badge: data.badge,
+          badge_ru: data.badge_ru || '',
+          badge_en: data.badge_en || '',
+          title: data.title,
+          title_ru: data.title_ru || '',
+          title_en: data.title_en || '',
+          cards: data.cards?.length
+            ? data.cards.map(c => ({ ...c, title_ru: c.title_ru || '', title_en: c.title_en || '', text_ru: c.text_ru || '', text_en: c.text_en || '' }))
+            : DEFAULT_MISSION_CARDS.map(c => ({ ...c })),
+        });
+      }
+    } catch { /* keep defaults */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const updateCard = (idx: number, field: keyof MissionCard, value: string) => {
+    setForm(f => ({
+      ...f,
+      cards: f.cards.map((c, i) => i === idx ? { ...c, [field]: value } : c),
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!form.badge.trim() || !form.title.trim()) {
+      toast.error('Badge va sarlavha majburiy');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminUpsertSiteMission({
+        badge: form.badge.trim(),
+        badge_ru: form.badge_ru.trim() || undefined,
+        badge_en: form.badge_en.trim() || undefined,
+        title: form.title.trim(),
+        title_ru: form.title_ru.trim() || undefined,
+        title_en: form.title_en.trim() || undefined,
+        cards: form.cards.map((c, i) => ({
+          icon: c.icon,
+          title: c.title,
+          title_ru: c.title_ru || undefined,
+          title_en: c.title_en || undefined,
+          text: c.text,
+          text_ru: c.text_ru || undefined,
+          text_en: c.text_en || undefined,
+          sort_order: i + 1,
+        })),
+      });
+      toast.success('Missiya va vizyon saqlandi');
+      load();
+    } catch {
+      toast.error('Saqlashda xatolik');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <Skeleton className="h-96 bg-muted rounded-sm" />;
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <p className="text-sm text-muted-foreground">
+        &quot;Biz haqimizda&quot; sahifasidagi &quot;Missiya va Vizyon&quot; bo&apos;limi shu yerda boshqariladi.
+      </p>
+      <div className="glass-card border-ancient rounded-sm p-6 card-ancient space-y-5">
+        <div className="flex gap-1 border-b border-border/40 pb-2">
+          {(['uz', 'ru', 'en'] as const).map((l) => (
+            <button key={l} type="button" onClick={() => setLangTab(l)}
+              className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        {langTab === 'uz' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge *</Label>
+              <Input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} placeholder="Maqsadimiz" className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Bo&apos;lim sarlavhasi *</Label>
+              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Missiya va Vizyon" className="rounded-sm text-sm" />
+            </div>
+          </div>
+        )}
+        {langTab === 'ru' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge (RU)</Label>
+              <Input value={form.badge_ru} onChange={e => setForm(f => ({ ...f, badge_ru: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Заголовок (RU)</Label>
+              <Input value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+          </div>
+        )}
+        {langTab === 'en' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Badge (EN)</Label>
+              <Input value={form.badge_en} onChange={e => setForm(f => ({ ...f, badge_en: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Section title (EN)</Label>
+              <Input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} className="rounded-sm text-sm" />
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-border/40 pt-4 space-y-4">
+          <Label className="text-sm font-semibold text-foreground">Kartalar (3 ta)</Label>
+          {form.cards.map((card, i) => (
+            <div key={i} className="p-4 bg-background/30 border border-border/30 rounded-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <Select value={card.icon} onValueChange={v => updateCard(i, 'icon', v)}>
+                  <SelectTrigger className="w-44 h-8 rounded-sm text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MISSION_ICON_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-xs text-muted-foreground">Karta {i + 1}</span>
+              </div>
+              {langTab === 'uz' && (
+                <>
+                  <Input value={card.title} onChange={e => updateCard(i, 'title', e.target.value)} placeholder="Sarlavha" className="rounded-sm text-sm" />
+                  <textarea value={card.text} onChange={e => updateCard(i, 'text', e.target.value)} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y" />
+                </>
+              )}
+              {langTab === 'ru' && (
+                <>
+                  <Input value={card.title_ru || ''} onChange={e => updateCard(i, 'title_ru', e.target.value)} placeholder="Заголовок (RU)" className="rounded-sm text-sm" />
+                  <textarea value={card.text_ru || ''} onChange={e => updateCard(i, 'text_ru', e.target.value)} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y" />
+                </>
+              )}
+              {langTab === 'en' && (
+                <>
+                  <Input value={card.title_en || ''} onChange={e => updateCard(i, 'title_en', e.target.value)} placeholder="Title (EN)" className="rounded-sm text-sm" />
+                  <textarea value={card.text_en || ''} onChange={e => updateCard(i, 'text_en', e.target.value)} rows={3}
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 resize-y" />
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button onClick={load} variant="ghost" className="border border-border/40 rounded-sm text-sm">Bekor qilish</Button>
+          <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm gap-2">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

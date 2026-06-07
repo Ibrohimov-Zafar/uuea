@@ -11,6 +11,8 @@ import { useLang } from '@/contexts/LangContext';
 import { localizedField } from '@/i18n/locale';
 import { getBusinesses } from '@/api/client';
 import type { Business } from '@/types/types';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 const BusinessMap = lazy(() => import('@/components/BusinessMap'));
 
 const ALL = 'Hammasi';
@@ -99,28 +101,12 @@ export default function DirectoryPage() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        {/* Constellation dots */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          {[...Array(18)].map((_, i) => (
-            <div key={i} className="absolute w-0.5 h-0.5 rounded-full bg-primary/40"
-              style={{ top: `${10 + (i * 17) % 80}%`, left: `${5 + (i * 23) % 90}%`, opacity: 0.3 + (i % 5) * 0.1 }} />
-          ))}
-        </div>
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            {t('directory')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('directoryTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('directorySub')}
-          </p>
-          {/* Search bar */}
-          <div className="max-w-2xl mx-auto flex gap-2">
+      <PageHeroBanner image={PAGE_HERO_IMAGES.directory}>
+        <PageHeroBadge>{t('directory')}</PageHeroBadge>
+        <PageHeroTitle>{t('directoryTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('directorySub')}</PageHeroSub>
+        {/* Search bar */}
+        <div className="max-w-2xl mx-auto flex gap-2 pt-2">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -153,8 +139,7 @@ export default function DirectoryPage() {
               )}
             </Button>
           </div>
-        </div>
-      </section>
+      </PageHeroBanner>
 
       {/* Advanced Filter Panel */}
       <div className={cn(

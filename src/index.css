@@ -171,8 +171,27 @@
   }
 }
 
+/* Respect OS-level "Reduce Motion" preference (WCAG 2.3.3).
+   Users who set this flag in system accessibility settings may experience
+   nausea, migraines, or seizures from moving UI elements. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ======== Mystical Decorative Utilities ======== */
 @layer utilities {
+  .bg-home-page {
+    background-image: url('/bg.webp');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
   /* Sacred geometry background pattern */
   .bg-sacred-geometry {
     background-image:

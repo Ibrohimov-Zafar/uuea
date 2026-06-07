@@ -34,7 +34,7 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
   const { lang, setLang, t } = useLang();
@@ -56,10 +56,10 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   const isActive = (href: string) =>
-    href === '/' ? location.pathname === '/' : location.pathname.startsWith(href);
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   const handleSignOut = async () => {
     setUserMenuOpen(false);

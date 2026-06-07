@@ -70,7 +70,7 @@ func Demo(db *sql.DB) error {
 	// Events
 	var n int
 	_ = db.QueryRow(`SELECT COUNT(*) FROM events`).Scan(&n)
-	if n < 6 {
+	if n == 0 {
 		type ev struct {
 			id, title, desc, cat, loc, date, t string
 			price                              float64
@@ -94,7 +94,7 @@ func Demo(db *sql.DB) error {
 
 	// Businesses
 	_ = db.QueryRow(`SELECT COUNT(*) FROM businesses`).Scan(&n)
-	if n < 6 {
+	if n == 0 {
 		type biz struct {
 			id, name, cat, desc, phone, email, addr, region string
 			vip                                                bool
@@ -116,7 +116,7 @@ func Demo(db *sql.DB) error {
 
 	// News (approved) – for NewsPage
 	_ = db.QueryRow(`SELECT COUNT(*) FROM news_posts`).Scan(&n)
-	if n < 6 {
+	if n == 0 {
 		type post struct {
 			title, excerpt, body, cat, img string
 			featured                        bool
@@ -141,7 +141,7 @@ func Demo(db *sql.DB) error {
 
 	// Business submissions – to test Admin approvals
 	_ = db.QueryRow(`SELECT COUNT(*) FROM business_submissions`).Scan(&n)
-	if n < 5 {
+	if n == 0 {
 		type sub struct{ name, cat, desc, phone, email, addr string }
 		list := []sub{
 			{"Andijon Coffee", "Savdo", "Qahva va desertlar.", "+998742222222", "hello@coffee.uz", "Andijon"},

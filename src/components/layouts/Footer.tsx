@@ -48,9 +48,9 @@ export default function Footer() {
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3">
-                {socialLinks.map((s, i) => (
+                {socialLinks.map((s) => (
                   <a
-                    key={i}
+                    key={s.href}
                     href={s.href}
                     target="_blank"
                     rel="noopener noreferrer"

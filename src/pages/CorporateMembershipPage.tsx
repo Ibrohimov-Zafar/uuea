@@ -5,27 +5,19 @@ import { Button } from '@/components/ui/button';
 import PlanGrid from '@/components/membership/PlanGrid';
 import { CORPORATE_PLAN_SLUGS } from '@/config/membership';
 import { useLang } from '@/contexts/LangContext';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 
 export default function CorporateMembershipPage() {
   const { t } = useLang();
 
   return (
     <Layout>
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            <Building2 className="w-3.5 h-3.5" />
-            {t('corporateBadge')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('corporateTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('corporateSub')}
-          </p>
-        </div>
-      </section>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.corporate}>
+        <PageHeroBadge><Building2 className="w-3.5 h-3.5" />{t('corporateBadge')}</PageHeroBadge>
+        <PageHeroTitle>{t('corporateTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('corporateSub')}</PageHeroSub>
+      </PageHeroBanner>
 
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">

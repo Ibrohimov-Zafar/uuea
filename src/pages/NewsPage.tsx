@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { getNews } from '@/api/client';
 import type { NewsPost } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 
 const NEWS_CATEGORIES = ['Hammasi', 'Iqtisodiyot', 'Hamkorlik', 'Savdo', 'Tadbirlar', 'Moliya', 'Startaplar'];
 
@@ -51,30 +53,20 @@ export default function NewsPage() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            {t('news')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('newsTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('newsSub')}
-          </p>
-          <div className="max-w-lg mx-auto relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder={t('newsSearchPh')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-11 h-12 bg-card border-border/60 rounded-sm focus-visible:ring-primary text-sm"
-            />
-          </div>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.news}>
+        <PageHeroBadge>{t('news')}</PageHeroBadge>
+        <PageHeroTitle>{t('newsTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('newsSub')}</PageHeroSub>
+        <div className="max-w-lg mx-auto relative pt-2">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={t('newsSearchPh')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-11 h-12 bg-card/90 border-border/60 rounded-sm focus-visible:ring-primary text-sm"
+          />
         </div>
-      </section>
+      </PageHeroBanner>
 
       {/* Content */}
       <section className="py-16 bg-background bg-sacred-geometry">

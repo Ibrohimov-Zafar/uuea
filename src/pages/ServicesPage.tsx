@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getSiteServices } from '@/api/client';
 import type { SiteService } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 
 const iconMap: Record<string, React.ReactNode> = {
   Megaphone:  <Megaphone className="w-8 h-8" />,
@@ -38,21 +40,11 @@ export default function ServicesPage() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            {t('servicesBadge')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('servicesTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('servicesSub')}
-          </p>
-        </div>
-      </section>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.services}>
+        <PageHeroBadge>{t('servicesBadge')}</PageHeroBadge>
+        <PageHeroTitle>{t('servicesTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('servicesSub')}</PageHeroSub>
+      </PageHeroBanner>
 
       {/* Services Grid */}
       <section className="py-20 bg-background bg-sacred-geometry">

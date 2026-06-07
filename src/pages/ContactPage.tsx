@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/contexts/LangContext';
 import { SITE } from '@/config/site';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 import { createContactMessage } from '@/api/client';
 import { toast } from 'sonner';
 
@@ -62,20 +64,11 @@ export default function ContactPage() {
 
   return (
     <Layout>
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            {t('contactBadge')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('contactTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('contactSub')}
-          </p>
-        </div>
-      </section>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.contact}>
+        <PageHeroBadge>{t('contactBadge')}</PageHeroBadge>
+        <PageHeroTitle>{t('contactTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('contactSub')}</PageHeroSub>
+      </PageHeroBanner>
 
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">

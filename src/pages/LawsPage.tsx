@@ -5,11 +5,14 @@ import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import LegalSourceMeta from '@/components/common/LegalSourceMeta';
 import { cn } from '@/lib/utils';
 import { legalCategories } from '@/data/legalResources';
 import { getLegalResources } from '@/api/client';
 import type { LegalResource } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 
 function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
   if (lang === 'ru' && ru) return ru;
@@ -24,6 +27,7 @@ type DisplayItem = {
   category: string;
   date: string;
   source: string;
+  sourceUrl?: string | null;
   featured: boolean;
 };
 
@@ -35,6 +39,7 @@ function toDisplay(row: LegalResource, lang: string): DisplayItem {
     category: row.category,
     date: row.published_date,
     source: row.source,
+    sourceUrl: row.source_url,
     featured: Boolean(row.is_featured),
   };
 }
@@ -70,30 +75,20 @@ export default function LawsPage() {
 
   return (
     <Layout>
-      <section className="relative py-20 sm:py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            <Scale className="w-3.5 h-3.5" />
-            {t('lawsBadge')}
-          </div>
-          <h1 className="font-jiang-cheng text-3xl sm:text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('lawsTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed text-sm sm:text-base">
-            {t('lawsSub')}
-          </p>
-          <div className="max-w-lg mx-auto relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder={t('lawsSearchPh')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 bg-card/80 border-border/60 rounded-sm focus-visible:ring-primary"
-            />
-          </div>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.laws} imagePosition="center top">
+        <PageHeroBadge><Scale className="w-3.5 h-3.5" />{t('lawsBadge')}</PageHeroBadge>
+        <PageHeroTitle>{t('lawsTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('lawsSub')}</PageHeroSub>
+        <div className="max-w-lg mx-auto relative pt-2">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={t('lawsSearchPh')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-10 bg-card/90 border-border/60 rounded-sm focus-visible:ring-primary"
+          />
         </div>
-      </section>
+      </PageHeroBanner>
 
       <section className="py-8 border-b border-border/50 bg-navy-light/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -154,7 +149,11 @@ export default function LawsPage() {
                             <Calendar className="w-3.5 h-3.5 text-primary" />
                             {new Date(featured.date).toLocaleDateString('uz-UZ')}
                           </span>
-                          <span>{featured.source}</span>
+                          <LegalSourceMeta
+                            source={featured.source}
+                            sourceUrl={featured.sourceUrl}
+                            onClick={(e) => e.stopPropagation()}
+                          />
                         </div>
                       </div>
                       <ArrowRight className="hidden md:block w-5 h-5 text-primary shrink-0 mt-2" />
@@ -172,8 +171,18 @@ export default function LawsPage() {
                         {item.title}
                       </h3>
                       <p className="text-muted-foreground text-xs leading-relaxed flex-1 line-clamp-3">{item.excerpt}</p>
-                      <div className="text-[10px] text-muted-foreground mt-4 pt-3 border-t border-border/40">
-                        {new Date(item.date).toLocaleDateString('uz-UZ')} · {item.source}
+                      <div className="text-[10px] text-muted-foreground mt-4 pt-3 border-t border-border/40 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span>{new Date(item.date).toLocaleDateString('uz-UZ')}</span>
+                        {item.source && (
+                          <>
+                            <span>·</span>
+                            <LegalSourceMeta
+                              source={item.source}
+                              sourceUrl={item.sourceUrl}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </>
+                        )}
                       </div>
                     </article>
                   </Link>

@@ -28,17 +28,17 @@ function matchPublicRoute(path: string, patterns: string[]) {
 export function RouteGuard({ children }: RouteGuardProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     if (loading) return;
 
-    const isPublic = matchPublicRoute(location.pathname, PUBLIC_ROUTES);
+    const isPublic = matchPublicRoute(pathname, PUBLIC_ROUTES);
 
     if (!user && !isPublic) {
-      navigate('/kirish', { state: { from: location.pathname }, replace: true });
+      navigate('/kirish', { state: { from: pathname }, replace: true });
     }
-  }, [user, loading, location.pathname, navigate]);
+  }, [user, loading, pathname, navigate]);
 
   if (loading) {
     return (

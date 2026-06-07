@@ -3,10 +3,15 @@ export type UserRole = 'user' | 'admin' | 'super_admin' | 'business_owner';
 export interface Partner {
   id: string;
   name: string;
+  name_ru?: string | null;
+  name_en?: string | null;
+  description?: string;
+  description_ru?: string | null;
+  description_en?: string | null;
   logo_url: string | null;
   website: string | null;
   sort_order: number;
-  is_active: boolean;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -21,6 +26,39 @@ export interface Testimonial {
   rating: number;
   sort_order: number;
   created_at: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  role_ru?: string | null;
+  role_en?: string | null;
+  bio: string;
+  bio_ru?: string | null;
+  bio_en?: string | null;
+  avatar: string;
+  photo_url?: string | null;
+  linkedin?: string | null;
+  sort_order: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  year: string;
+  title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
+  description: string;
+  description_ru?: string | null;
+  description_en?: string | null;
+  sort_order: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SiteStat {
@@ -41,6 +79,56 @@ export interface SiteService {
   features: string[];
   sort_order: number;
   created_at: string;
+}
+
+export interface AboutStat {
+  value: string;
+  label: string;
+  label_ru?: string | null;
+  label_en?: string | null;
+  sort_order: number;
+}
+
+export interface SiteAbout {
+  id: string;
+  badge: string;
+  badge_ru?: string | null;
+  badge_en?: string | null;
+  title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
+  para1: string;
+  para1_ru?: string | null;
+  para1_en?: string | null;
+  para2: string;
+  para2_ru?: string | null;
+  para2_en?: string | null;
+  image_url?: string | null;
+  stats: AboutStat[];
+  updated_at: string;
+}
+
+export interface MissionCard {
+  icon: string;
+  title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
+  text: string;
+  text_ru?: string | null;
+  text_en?: string | null;
+  sort_order: number;
+}
+
+export interface SiteMission {
+  id: string;
+  badge: string;
+  badge_ru?: string | null;
+  badge_en?: string | null;
+  title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
+  cards: MissionCard[];
+  updated_at: string;
 }
 export type MembershipPlan = 'starter' | 'business' | 'corporate' | 'international';
 export type MembershipStatus = 'active' | 'inactive' | 'pending' | 'cancelled';
@@ -77,6 +165,7 @@ export interface LegalResource {
   category: string;
   resource_type: LegalResourceType;
   source: string;
+  source_url?: string | null;
   published_date: string;
   is_featured: boolean | number;
   status: LegalResourceStatus;

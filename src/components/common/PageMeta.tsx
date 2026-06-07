@@ -69,7 +69,7 @@ export function PageSeo({
   const allLd = mergeJsonLd(undefined, jsonLd);
   const ldScripts = allLd.length
     ? allLd.map((obj, i) => (
-        <script key={i} type="application/ld+json">
+        <script key={(obj as Record<string, unknown>)['@type'] as string ?? i} type="application/ld+json">
           {JSON.stringify(obj)}
         </script>
       ))

@@ -45,7 +45,8 @@ const emptyForm = (): LegalResourcePayload => ({
   body_en: '',
   category: 'Qonunlar',
   resource_type: 'law',
-  source: 'UUEA',
+  source: '',
+  source_url: '',
   published_date: new Date().toISOString().slice(0, 10),
   is_featured: false,
   status: 'published',
@@ -94,6 +95,7 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
       category: item.category,
       resource_type: item.resource_type,
       source: item.source,
+      source_url: item.source_url || '',
       published_date: item.published_date?.slice(0, 10) || '',
       is_featured: Boolean(item.is_featured),
       status: item.status === 'draft' ? 'draft' : 'published',
@@ -314,14 +316,49 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Manba</Label>
-                <Input value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))} className="rounded-sm text-sm" />
-              </div>
-              <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Sana</Label>
                 <Input type="date" value={form.published_date} onChange={(e) => setForm((f) => ({ ...f, published_date: e.target.value }))} className="rounded-sm text-sm" />
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Holat</Label>
+                <Select value={form.status} onValueChange={(v: 'published' | 'draft') => setForm((f) => ({ ...f, status: v }))}>
+                  <SelectTrigger className="rounded-sm text-sm h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="published">published</SelectItem>
+                    <SelectItem value="draft">draft</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            <div className="border-t border-border/40 pt-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Scale className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Manba ma&apos;lumotlari</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Matn kiritilgandan so&apos;ng, qayerdan olinganini nomi va havolasini qoldiring. Foydalanuvchiga manba belgisi ko&apos;rinadi.
+              </p>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Manba nomi *</Label>
+                <Input
+                  value={form.source}
+                  onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+                  placeholder="O'zbekiston Respublikasi Prezidenti huzuridagi Axborot portali"
+                  className="rounded-sm text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Manba havolasi (ixtiyoriy)</Label>
+                <Input
+                  value={form.source_url || ''}
+                  onChange={(e) => setForm((f) => ({ ...f, source_url: e.target.value }))}
+                  placeholder="https://lex.uz yoki rasmiy portal havolasi"
+                  className="rounded-sm text-sm"
+                />
+              </div>
+            </div>
+
             <div className="flex gap-4 items-center">
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                 <input
@@ -332,13 +369,6 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
                 />
                 Asosiy (featured)
               </label>
-              <Select value={form.status} onValueChange={(v: 'published' | 'draft') => setForm((f) => ({ ...f, status: v }))}>
-                <SelectTrigger className="w-32 rounded-sm text-sm h-8"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="published">published</SelectItem>
-                  <SelectItem value="draft">draft</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>

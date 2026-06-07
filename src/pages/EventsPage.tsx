@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { getEvents, getEventSpots, getMyEventRegistrations, eventCheckout } from '@/api/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLang } from '@/contexts/LangContext';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 import { toast } from 'sonner';
 import type { Event } from '@/types/types';
 
@@ -124,35 +126,23 @@ export default function EventsPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-navy-dark pt-20">
-        {/* Hero */}
-        <div className="relative py-16 md:py-24 overflow-hidden">
-          <div className="sacred-geometry-bg" />
-          <div className="absolute inset-0 constellation-bg opacity-20" />
-          <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-primary/30 bg-primary/5 rounded-sm mb-4">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span className="text-primary text-xs font-semibold tracking-wider">{t('eventsCalendarBadge')}</span>
-            </div>
-            <h1 className="font-jiang-cheng text-foreground text-3xl md:text-5xl font-bold mb-4 text-balance">
-              {t('businessEventsTitle')}
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto text-pretty">
-              {t('eventsPageSub')}
-            </p>
-            <div className="flex items-center justify-center gap-8 mt-8 flex-wrap">
-              {[
-                { label: t('annualEventsLabel'), value: `${events.length}+` },
-                { label: t('upcomingEventsLabel'), value: upcomingCount },
-                { label: t('participantsLabel'), value: "2500+" },
-              ].map(stat => (
-                <div key={stat.label} className="text-center">
-                  <div className="font-jiang-cheng text-primary text-3xl font-bold">{stat.value}</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+        <PageHeroBanner image={PAGE_HERO_IMAGES.events} className="!py-16 md:!py-24">
+          <PageHeroBadge><Calendar className="w-3.5 h-3.5" />{t('eventsCalendarBadge')}</PageHeroBadge>
+          <PageHeroTitle>{t('businessEventsTitle')}</PageHeroTitle>
+          <PageHeroSub className="max-w-xl">{t('eventsPageSub')}</PageHeroSub>
+          <div className="flex items-center justify-center gap-8 mt-2 flex-wrap">
+            {[
+              { label: t('annualEventsLabel'), value: `${events.length}+` },
+              { label: t('upcomingEventsLabel'), value: upcomingCount },
+              { label: t('participantsLabel'), value: '2500+' },
+            ].map(stat => (
+              <div key={stat.label} className="text-center">
+                <div className="font-jiang-cheng text-primary text-3xl font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">{stat.value}</div>
+                <div className="text-white/80 text-xs mt-0.5">{stat.label}</div>
+              </div>
+            ))}
           </div>
-        </div>
+        </PageHeroBanner>
 
         {/* Featured */}
         {featured.length > 0 && (

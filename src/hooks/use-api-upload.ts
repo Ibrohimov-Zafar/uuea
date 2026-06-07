@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone';
 import { uploadFile } from '@/api/client';
 
@@ -29,10 +29,25 @@ const useApiUpload = (options: UseApiUploadOptions = {}) => {
   const [successes, setSuccesses] = useState<string[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
 
+  // Compute derived values inline to avoid an extra render from useEffect.
+  // When files is empty, errors are no longer relevant.
+  const activeErrors = files.length === 0 ? [] : errors;
+
+  // When within the file limit, strip "too-many-files" errors that dropzone
+  // added during the previous over-limit drop.
+  const activeFiles = files.length <= maxFiles
+    ? files.map(file => {
+        if (!file.errors.some(e => e.code === 'too-many-files')) return file;
+        (file as FileWithPreview & { errors: FileError[] }).errors =
+          file.errors.filter(e => e.code !== 'too-many-files') as FileError[];
+        return file;
+      })
+    : files;
+
   const isSuccess = useMemo(() => {
-    if (errors.length === 0 && successes.length === 0) return false;
-    return errors.length === 0 && successes.length === files.length;
-  }, [errors.length, successes.length, files.length]);
+    if (activeErrors.length === 0 && successes.length === 0) return false;
+    return activeErrors.length === 0 && successes.length === activeFiles.length;
+  }, [activeErrors.length, successes.length, activeFiles.length]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -90,29 +105,14 @@ const useApiUpload = (options: UseApiUploadOptions = {}) => {
     setLoading(false);
   }, [files, errors, successes]);
 
-  useEffect(() => {
-    if (files.length === 0) setErrors([]);
-    if (files.length <= maxFiles) {
-      let changed = false;
-      const newFiles = files.map((file) => {
-        if (file.errors.some((e) => e.code === 'too-many-files')) {
-          file.errors = file.errors.filter((e) => e.code !== 'too-many-files');
-          changed = true;
-        }
-        return file;
-      });
-      if (changed) setFiles(newFiles);
-    }
-  }, [files.length, maxFiles, files]);
-
   return {
-    files,
+    files: activeFiles,
     setFiles,
     successes,
     urls,
     isSuccess,
     loading,
-    errors,
+    errors: activeErrors,
     setErrors,
     onUpload,
     maxFileSize,

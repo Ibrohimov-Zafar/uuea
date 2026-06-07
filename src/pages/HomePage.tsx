@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Search, ChevronLeft, ChevronRight, Star, CheckCircle, Play, TrendingUp, Shield, Network, Megaphone, LifeBuoy, User, Building2 } from 'lucide-react';
+import { ArrowRight, Search, ChevronLeft, ChevronRight, Star,  Play, TrendingUp, Shield, Network, Megaphone, LifeBuoy, User, Building2 } from 'lucide-react';
 import Layout from '@/components/layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,9 +87,9 @@ function SectionHeading({ subtitle, title, description }: { subtitle: string; ti
 // ---- Hero Section ----
 function HeroSection() {
   const { t } = useLang();
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  // const [email, setEmail] = useState('');
+  // const [submitting, setSubmitting] = useState(false);
+  // const [submitted, setSubmitted] = useState(false);
 
   // Parallax + fade-in state
   const sectionRef = useRef<HTMLElement>(null);
@@ -110,60 +110,51 @@ function HeroSection() {
   // Content floats up a little (20% speed)
   const contentParallax = scrollY * 0.18;
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !/^[^@]+@[^@]+[.][^@]+$/.test(email)) {
-      toast.error(t('validEmail'));
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await createHeroLead(email.trim());
-    } catch {
-      toast.error(t('tryAgain'));
-      setSubmitting(false);
-      return;
-    }
-    sendEmail({
-      type: 'hero_lead_confirmation',
-      to: email.trim(),
-      name: email.trim().split('@')[0],
-      siteUrl: window.location.origin,
-    }).catch(() => { /* silent */ });
-    setSubmitting(false);
-    setSubmitted(true);
-    setEmail('');
-    toast.success(t('heroLeadSuccess'));
-  };
+  // const handleEmailSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!email.trim() || !/^[^@]+@[^@]+[.][^@]+$/.test(email)) {
+  //     toast.error(t('validEmail'));
+  //     return;
+  //   }
+  //   setSubmitting(true);
+  //   try {
+  //     await createHeroLead(email.trim());
+  //   } catch {
+  //     toast.error(t('tryAgain'));
+  //     setSubmitting(false);
+  //     return;
+  //   }
+  //   sendEmail({
+  //     type: 'hero_lead_confirmation',
+  //     to: email.trim(),
+  //     name: email.trim().split('@')[0],
+  //     siteUrl: window.location.origin,
+  //   }).catch(() => { /* silent */ });
+  //   setSubmitting(false);
+  //   setSubmitted(true);
+  //   setEmail('');
+  //   toast.success(t('heroLeadSuccess'));
+  // };
 
   return (
     <section ref={sectionRef} className="relative min-h-[95vh] flex items-center overflow-hidden bg-black">
       {/* ── Hero background with parallax ── */}
       <div className="absolute inset-0 overflow-hidden">
         <img
-          src="/h.png"
+          src="/new.jpeg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-center brightness-105 blur-[3px] scale-[1.06]"
+          className="absolute inset-0 w-full h-full object-cover object-center"
           style={{ transform: `translateY(${videoParallax}px) scale(1.08)`, willChange: 'transform' }}
         />
       </div>
 
-      {/* Overlays — soft tint + blur support for readable text */}
-      <div className="absolute inset-0 bg-black/25" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/15" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/20" />
+      {/* Overlays — light tint for text contrast (background stays sharp) */}
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15" />
 
-      {/* Runic circle overlay */}
-      <div className="absolute top-16 right-10 w-[420px] h-[420px] z-0 pointer-events-none hidden xl:block">
-        <div className="absolute inset-0 rounded-full border border-primary/10 animate-spin-slow" />
-        <div className="absolute inset-8 rounded-full border border-primary/15" />
-        <div className="absolute inset-16 rounded-full border border-primary/25 animate-spin-slow" style={{ animationDuration: '30s' }} />
-        <div className="absolute inset-1/3 rounded-full bg-primary/8 blur-3xl" />
-      </div>
-      <div className="absolute bottom-10 left-0 w-72 h-72 border border-primary/8 rotate-12 z-0 pointer-events-none hidden lg:block" />
-      <div className="absolute bottom-32 left-16 w-48 h-48 border border-primary/5 rotate-45 z-0 pointer-events-none hidden lg:block" />
-
+  
       {/* Gold glow */}
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-primary/6 rounded-full blur-3xl z-0 pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-primary/4 rounded-full blur-3xl z-0 pointer-events-none" />
@@ -174,32 +165,33 @@ function HeroSection() {
         className="relative max-w-7xl mx-auto px-6 w-full py-28 z-10"
         style={{ transform: `translateY(${-contentParallax}px)`, willChange: 'transform' }}
       >
-        <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+        <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
 
           {/* Tag — fade delay 0ms */}
           <div
-            className="inline-flex items-center gap-2.5 px-4 py-2 border border-primary/50 bg-black/30 rounded-sm mx-auto mb-8 transition-all duration-700 backdrop-blur-sm"
+            className="inline-flex items-center gap-2.5 px-4 py-2 border border-primary/50 bg-black/40 rounded-sm mx-auto mb-6 sm:mb-8 transition-all duration-700"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)' }}
           >
             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-            <span className="text-primary text-xs tracking-widest uppercase font-semibold">{t('heroTag')}</span>
+            <span className="text-primary tracking-widest uppercase font-semibold text-[clamp(0.6875rem,1.6vw,0.9375rem)]">{t('heroTag')}</span>
           </div>
 
-          {/* Headline — fade delay 100ms */}
+          {/* Headline — 2 lines, fluid size */}
           <h1
-            className="font-jiang-cheng text-4xl md:text-6xl xl:text-7xl font-bold text-white leading-tight text-balance mb-6 transition-all duration-700 drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)]"
+            className="font-jiang-cheng font-bold text-white leading-[1.06] tracking-tight mb-6 sm:mb-8 max-w-5xl mx-auto transition-all duration-700 drop-shadow-[0_2px_24px_rgba(0,0,0,0.8)] text-[clamp(1.75rem,7vw,6rem)]"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(32px)', transitionDelay: '100ms' }}
           >
-            {t('heroTitle').split(' ').slice(0, 2).join(' ')}{' '}
-            <span className="relative inline-block">
-              <span className="text-gold-gradient">{t('heroTitle').split(' ').slice(2, 3).join(' ')}</span>
-            </span>{' '}
-            {t('heroTitle').split(' ').slice(3).join(' ')}
+            <span className="block whitespace-nowrap">{t('heroTitleLine1')}</span>
+            <span className="block mt-1.5 sm:mt-2 whitespace-nowrap">
+              {t('heroTitleLine2Start') ? <>{t('heroTitleLine2Start')}{'\u00A0'}</> : null}
+              <span className="text-gold-gradient">{t('heroTitleAccent')}</span>
+              {'\u00A0'}{t('heroTitleLine2')}
+            </span>
           </h1>
 
-          {/* Sub — fade delay 200ms */}
+          {/* Sub — fluid size */}
           <p
-            className="text-white/95 text-base md:text-xl leading-relaxed max-w-2xl text-pretty mx-auto mb-8 transition-all duration-700 drop-shadow-[0_1px_8px_rgba(0,0,0,0.55)]"
+            className="text-white/95 leading-relaxed sm:leading-[1.6] max-w-3xl text-pretty mx-auto mb-8 sm:mb-10 transition-all duration-700 drop-shadow-[0_2px_16px_rgba(0,0,0,0.7)] text-[clamp(1.0625rem,2.8vw,1.875rem)]"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(28px)', transitionDelay: '200ms' }}
           >
             {t('heroSub')}
@@ -207,104 +199,26 @@ function HeroSection() {
 
           {/* CTA Buttons — fade delay 300ms */}
           <div
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-8 transition-all duration-700"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 transition-all duration-700"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)', transitionDelay: '300ms' }}
           >
             <Link to="/qoshilish">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-8 text-sm font-semibold w-full sm:w-auto shadow-gold">
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-8 text-[clamp(0.8125rem,1.8vw,1rem)] font-semibold w-full sm:w-auto shadow-gold h-11 sm:h-12">
                 {t('heroCta')} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Link to="/katalog">
-              <Button size="lg" variant="ghost" className="border border-primary/50 text-primary bg-black/25 hover:bg-black/40 hover:border-primary/70 rounded-sm px-8 text-sm w-full sm:w-auto backdrop-blur-sm">
+              <Button size="lg" variant="ghost" className="border border-primary/50 text-primary bg-black/40 hover:bg-black/55 hover:border-primary/70 rounded-sm px-8 text-[clamp(0.8125rem,1.8vw,1rem)] w-full sm:w-auto h-11 sm:h-12">
                 <Play className="w-3.5 h-3.5 mr-2" />{t('heroCtaAlt')}
               </Button>
             </Link>
           </div>
 
-          {/* Stats — fade delay 400ms */}
-          <div
-            className="flex items-center gap-8 flex-wrap justify-center mb-6 transition-all duration-700"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transitionDelay: '400ms' }}
-          >
-            {[
-              { n: "2500+", l: t('statMembers') },
-              { n: "15+",   l: t('statYears') },
-              { n: "50+",   l: t('statEvents') },
-            ].map(s => (
-              <div key={s.l} className="space-y-0.5">
-                <div className="font-jiang-cheng text-2xl font-bold text-primary">{s.n}</div>
-                <div className="text-[11px] text-white/70 uppercase tracking-wider">{s.l}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Trust badges — fade delay 500ms */}
-          <div
-            className="flex items-center gap-3 flex-wrap justify-center mb-8 transition-all duration-700"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transitionDelay: '500ms' }}
-          >
-            {[
-              { icon: <Shield className="w-3.5 h-3.5" />,      label: t('statCert') },
-              { icon: <CheckCircle className="w-3.5 h-3.5" />, label: t('statVerified') },
-              { icon: <Star className="w-3.5 h-3.5" />,        label: t('statPremium') },
-            ].map(b => (
-              <div key={b.label} className="flex items-center gap-1.5 px-3 py-1.5 border border-white/15 bg-black/30 rounded-sm text-xs text-white/80 backdrop-blur-sm">
-                <span className="text-primary">{b.icon}</span>
-                {b.label}
-              </div>
-            ))}
-          </div>
-
-          {/* Email form — fade delay 600ms */}
-          <div
-            className="w-full max-w-xl mx-auto transition-all duration-700"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transitionDelay: '600ms' }}
-          >
-            {submitted ? (
-              <div className="flex items-center justify-center gap-3 px-6 py-4 border border-primary/40 bg-black/40 rounded-sm backdrop-blur-sm">
-                <CheckCircle className="w-5 h-5 text-primary shrink-0" />
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-primary">Muvaffaqiyatli yuborildi!</p>
-                  <p className="text-xs text-white/70">Tez orada siz bilan bog&apos;lanamiz.</p>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleEmailSubmit} className="space-y-2">
-                <p className="text-xs text-white/70 uppercase tracking-widest text-center">
-                  A&apos;zolikka qo&apos;shilish uchun emailingizni qoldiring
-                </p>
-                <div className="flex gap-2 p-1.5 bg-black/45 border border-primary/30 rounded-sm backdrop-blur-sm">
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="email@kompaniya.uz"
-                    className="flex-1 min-w-0 bg-transparent border-0 text-white placeholder:text-white/45 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 h-10 px-3"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm px-5 shrink-0 gap-2 text-sm font-semibold shadow-gold"
-                  >
-                    {submitting
-                      ? <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      : <ArrowRight className="w-4 h-4" />
-                    }
-                    {submitting ? "Yuborilmoqda..." : "Qo'shilish"}
-                  </Button>
-                </div>
-                <p className="text-[10px] text-white/50 text-center">
-                  Spam yo&apos;q. Istalgan vaqt obunani bekor qilish mumkin.
-                </p>
-              </form>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent z-10" />
+      {/* <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-navy-dark/90 to-transparent z-10" /> */}
     </section>
   );
 }
@@ -312,7 +226,7 @@ function HeroSection() {
 // ---- Statistics Section ----
 function StatsSection({ stats }: { stats: SiteStat[] }) {
   return (
-    <section className="py-16 bg-navy-light border-y border-border/50 relative">
+    <section className="py-16 border-y border-border/30 relative">
       <div className="absolute inset-0 bg-sacred-geometry opacity-30" />
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -329,7 +243,7 @@ function StatsSection({ stats }: { stats: SiteStat[] }) {
 function ServicesSection({ services }: { services: SiteService[] }) {
   const { t } = useLang();
   return (
-    <section className="py-20 bg-background relative bg-sacred-geometry">
+    <section className="py-20 relative">
       <div className="max-w-7xl mx-auto px-6">
         <SectionHeading
           subtitle={t('homeServicesBadge')}
@@ -368,30 +282,33 @@ function ServicesSection({ services }: { services: SiteService[] }) {
 
 // ---- Partners Section ----
 function PartnersSection({ partners }: { partners: Partner[] }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   if (partners.length === 0) return null;
   const doubled = [...partners, ...partners];
   return (
-    <section className="py-16 bg-navy-light border-y border-border/50 overflow-hidden">
+    <section className="py-16 border-y border-border/30 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 mb-10">
         <SectionHeading subtitle={t('partnersBadge')} title={t('homePartnersTitle')} />
       </div>
       <div className="relative">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">
-          {doubled.map((p, i) => (
+          {doubled.map((p, i) => {
+            const name = localizedField(p.name, p.name_ru, p.name_en, lang);
+            return (
             <a
               key={`${p.id}-${i}`}
               href={p.website || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={p.website ? '_blank' : undefined}
+              rel={p.website ? 'noopener noreferrer' : undefined}
               className="inline-flex items-center justify-center min-w-[120px] h-12 px-6 border border-border/60 rounded-sm bg-card/50 text-muted-foreground hover:text-primary hover:border-primary/40 transition-all text-sm font-semibold tracking-wide"
             >
               {p.logo_url
-                ? <img src={p.logo_url} alt={p.name} className="h-6 object-contain" />
-                : p.name
+                ? <img src={p.logo_url} alt={name} className="h-6 object-contain" />
+                : name
               }
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -475,7 +392,7 @@ function EventsSection({ events }: { events: Event[] }) {
       : `calc((100% - ${(visible - 1) * gapRem}rem) / ${visible})`;
 
   return (
-    <section className="py-16 sm:py-20 bg-background bg-sacred-geometry">
+    <section className="py-16 sm:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col gap-6 mb-8 md:flex-row md:items-end md:justify-between md:mb-12">
           <SectionHeading subtitle={t('homeEventsBadge')} title={t('homeEventsTitle')} />
@@ -549,7 +466,7 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
   }).slice(0, 4);
 
   return (
-    <section className="py-20 bg-navy-light border-y border-border/50">
+    <section className="py-20 border-y border-border/30">
       <div className="max-w-7xl mx-auto px-6">
         <SectionHeading
           subtitle={t('homeCatalogBadge')}
@@ -630,7 +547,7 @@ function MembershipSection() {
   ];
 
   return (
-    <section className="py-16 sm:py-20 bg-background bg-sacred-geometry">
+    <section className="py-16 sm:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <SectionHeading
           subtitle={t('membershipBadge')}
@@ -678,7 +595,7 @@ function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) 
   const cur = testimonials[Math.min(active, testimonials.length - 1)];
 
   return (
-    <section className="py-20 bg-navy-light border-y border-border/50 bg-sacred-geometry">
+    <section className="py-20 border-y border-border/30 relative">
       <div className="max-w-7xl mx-auto px-6">
         <SectionHeading subtitle={t('testimonialsBadge')} title={t('testimonialsTitle')} />
         <div className="max-w-3xl mx-auto">
@@ -703,9 +620,9 @@ function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) 
             </div>
           </div>
           <div className="flex justify-center gap-2 mt-8">
-            {testimonials.map((_, i) => (
+            {testimonials.map((t, i) => (
               <button
-                key={i}
+                key={t.id}
                 onClick={() => setActive(i)}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all",
@@ -750,7 +667,7 @@ function NewsletterSection() {
   };
 
   return (
-    <section className="py-20 bg-navy-dark relative overflow-hidden">
+    <section className="py-20 bg-navy-dark/75 backdrop-blur-sm relative overflow-hidden border-t border-border/30">
       <div className="absolute inset-0 bg-sacred-geometry opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-r from-navy-dark via-navy to-navy-dark" />
       <div className="relative max-w-3xl mx-auto px-6 text-center">
@@ -802,15 +719,19 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <HeroSection />
-      <StatsSection stats={stats} />
-      <ServicesSection services={services} />
-      <PartnersSection partners={partners} />
-      <EventsSection events={events} />
-      <DirectoryPreview businesses={businesses} />
-      <MembershipSection />
-      <TestimonialsSection testimonials={testimonials} />
-      <NewsletterSection />
+      <div className="relative">
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-home-page" aria-hidden="true" />
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-navy-dark/65" aria-hidden="true" />
+        <HeroSection />
+        <StatsSection stats={stats} />
+        <ServicesSection services={services} />
+        <PartnersSection partners={partners} />
+        <EventsSection events={events} />
+        <DirectoryPreview businesses={businesses} />
+        <MembershipSection />
+        <TestimonialsSection testimonials={testimonials} />
+        <NewsletterSection />
+      </div>
     </Layout>
   );
 }

@@ -23,7 +23,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev_change_me}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
-      SEED_DEMO: ${SEED_DEMO:-true}
+      SEED_DEMO: ${SEED_DEMO:-false}
     volumes:
       - uuea-data:/data
     healthcheck:

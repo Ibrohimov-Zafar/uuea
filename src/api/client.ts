@@ -12,8 +12,12 @@ import type {
   LegalResource,
   Partner,
   Testimonial,
+  TeamMember,
+  TimelineEvent,
   SiteStat,
   SiteService,
+  SiteAbout,
+  SiteMission,
 } from '@/types/types';
 
 /** Dashboard business submission row */
@@ -119,6 +123,7 @@ export type LegalResourcePayload = {
   category: string;
   resource_type: string;
   source: string;
+  source_url?: string;
   published_date: string;
   is_featured?: boolean;
   status?: 'published' | 'draft';
@@ -395,6 +400,16 @@ export async function getTestimonials(): Promise<Testimonial[]> {
   return asArray(data);
 }
 
+export async function getTeamMembers(): Promise<TeamMember[]> {
+  const { data } = await http.get<TeamMember[]>('/team-members');
+  return asArray(data);
+}
+
+export async function getTimelineEvents(): Promise<TimelineEvent[]> {
+  const { data } = await http.get<TimelineEvent[]>('/timeline-events');
+  return asArray(data);
+}
+
 export async function getSiteStats(): Promise<SiteStat[]> {
   const { data } = await http.get<SiteStat[]>('/site-stats');
   return asArray(data);
@@ -405,9 +420,35 @@ export async function getSiteServices(): Promise<SiteService[]> {
   return asArray(data);
 }
 
+export async function getSiteAbout(): Promise<SiteAbout | null> {
+  const { data } = await http.get<SiteAbout | null>('/site-about');
+  return data ?? null;
+}
+
+export async function getSiteMission(): Promise<SiteMission | null> {
+  const { data } = await http.get<SiteMission | null>('/site-mission');
+  return data ?? null;
+}
+
 // ─── Homepage admin ───────────────────────────────────────────────────────────
 
-export type PartnerPayload = { id?: string; name: string; logo_url?: string; website?: string; sort_order?: number; is_active?: boolean };
+export type PartnerPayload = {
+  id?: string;
+  name: string;
+  name_ru?: string;
+  name_en?: string;
+  description?: string;
+  description_ru?: string;
+  description_en?: string;
+  logo_url?: string;
+  website?: string;
+  sort_order?: number;
+  is_active?: boolean;
+};
+export async function adminPartners(): Promise<Partner[]> {
+  const { data } = await http.get<Partner[]>('/admin/partners');
+  return asArray(data);
+}
 export async function adminUpsertPartner(body: PartnerPayload): Promise<{ id: string }> {
   const { data } = await http.post<{ id: string }>('/admin/partners', body);
   return data;
@@ -441,6 +482,98 @@ export async function adminUpsertSiteService(body: SiteServicePayload): Promise<
 }
 export async function adminDeleteSiteService(id: string): Promise<void> {
   await http.delete('/admin/site-services', { params: { id } });
+}
+
+export type SiteAboutPayload = {
+  badge: string;
+  badge_ru?: string;
+  badge_en?: string;
+  title: string;
+  title_ru?: string;
+  title_en?: string;
+  para1: string;
+  para1_ru?: string;
+  para1_en?: string;
+  para2: string;
+  para2_ru?: string;
+  para2_en?: string;
+  image_url?: string;
+  stats: { value: string; label: string; label_ru?: string; label_en?: string; sort_order: number }[];
+};
+export async function adminGetSiteAbout(): Promise<SiteAbout | null> {
+  const { data } = await http.get<SiteAbout | null>('/admin/site-about');
+  return data ?? null;
+}
+export async function adminUpsertSiteAbout(body: SiteAboutPayload): Promise<void> {
+  await http.post('/admin/site-about', body);
+}
+
+export type SiteMissionPayload = {
+  badge: string;
+  badge_ru?: string;
+  badge_en?: string;
+  title: string;
+  title_ru?: string;
+  title_en?: string;
+  cards: { icon: string; title: string; title_ru?: string; title_en?: string; text: string; text_ru?: string; text_en?: string; sort_order: number }[];
+};
+export async function adminGetSiteMission(): Promise<SiteMission | null> {
+  const { data } = await http.get<SiteMission | null>('/admin/site-mission');
+  return data ?? null;
+}
+export async function adminUpsertSiteMission(body: SiteMissionPayload): Promise<void> {
+  await http.post('/admin/site-mission', body);
+}
+
+export type TeamMemberPayload = {
+  id?: string;
+  name: string;
+  role: string;
+  role_ru?: string;
+  role_en?: string;
+  bio?: string;
+  bio_ru?: string;
+  bio_en?: string;
+  avatar?: string;
+  photo_url?: string;
+  linkedin?: string;
+  sort_order?: number;
+  is_active?: boolean;
+};
+export async function adminTeamMembers(): Promise<TeamMember[]> {
+  const { data } = await http.get<TeamMember[]>('/admin/team-members');
+  return asArray(data);
+}
+export async function adminUpsertTeamMember(body: TeamMemberPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/team-members', body);
+  return data;
+}
+export async function adminDeleteTeamMember(id: string): Promise<void> {
+  await http.delete('/admin/team-members', { params: { id } });
+}
+
+export type TimelineEventPayload = {
+  id?: string;
+  year: string;
+  title: string;
+  title_ru?: string;
+  title_en?: string;
+  description?: string;
+  description_ru?: string;
+  description_en?: string;
+  sort_order?: number;
+  is_active?: boolean;
+};
+export async function adminTimelineEvents(): Promise<TimelineEvent[]> {
+  const { data } = await http.get<TimelineEvent[]>('/admin/timeline-events');
+  return asArray(data);
+}
+export async function adminUpsertTimelineEvent(body: TimelineEventPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/timeline-events', body);
+  return data;
+}
+export async function adminDeleteTimelineEvent(id: string): Promise<void> {
+  await http.delete('/admin/timeline-events', { params: { id } });
 }
 
 export async function adminCampaigns(): Promise<Record<string, unknown>[]> {

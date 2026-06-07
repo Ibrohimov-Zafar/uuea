@@ -12,6 +12,8 @@ import PlanGrid from '@/components/membership/PlanGrid';
 import { INDIVIDUAL_PLAN_SLUGS } from '@/config/membership';
 import { useLang } from '@/contexts/LangContext';
 import { faqItems } from '@/data/mockData';
+import PageHeroBanner, { PageHeroBadge, PageHeroSub, PageHeroTitle } from '@/components/common/PageHeroBanner';
+import { PAGE_HERO_IMAGES } from '@/config/pageHeroImages';
 
 function lf(uz: string, ru: string | undefined, en: string | undefined, lang: string): string {
   if (lang === 'ru' && ru) return ru;
@@ -24,21 +26,11 @@ export default function MembershipPage() {
 
   return (
     <Layout>
-      <section className="relative py-24 bg-navy-dark bg-sacred-geometry overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 to-navy-dark" />
-        <div className="relative max-w-7xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-            <User className="w-3.5 h-3.5" />
-            {t('membershipIndividualBadge')}
-          </div>
-          <h1 className="font-jiang-cheng text-4xl md:text-5xl font-bold text-foreground text-balance">
-            {t('membershipIndividualTitle')}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-            {t('membershipIndividualSub')}
-          </p>
-        </div>
-      </section>
+      <PageHeroBanner image={PAGE_HERO_IMAGES.membership}>
+        <PageHeroBadge><User className="w-3.5 h-3.5" />{t('membershipIndividualBadge')}</PageHeroBadge>
+        <PageHeroTitle>{t('membershipIndividualTitle')}</PageHeroTitle>
+        <PageHeroSub>{t('membershipIndividualSub')}</PageHeroSub>
+      </PageHeroBanner>
 
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">
@@ -105,7 +97,7 @@ export default function MembershipPage() {
           <Accordion type="single" collapsible className="space-y-3">
             {faqItems.map((item, i) => (
               <AccordionItem
-                key={i}
+                key={item.question}
                 value={`item-${i}`}
                 className="glass-card border-ancient rounded-sm px-5 border border-border/60 hover:border-primary/40 transition-colors"
               >

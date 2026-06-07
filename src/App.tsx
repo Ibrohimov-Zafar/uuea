@@ -22,9 +22,9 @@ const App: React.FC = () => {
                 <IntersectObserver />
                 <div className="flex flex-col min-h-screen">
                   <Routes>
-                    {routes.map((route, index) => (
+                    {routes.map((route) => (
                       <Route
-                        key={index}
+                        key={route.path}
                         path={route.path}
                         element={route.element}
                       />
