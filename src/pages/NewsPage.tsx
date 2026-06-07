@@ -12,12 +12,18 @@ import { useLang } from '@/contexts/LangContext';
 
 const NEWS_CATEGORIES = ['Hammasi', 'Iqtisodiyot', 'Hamkorlik', 'Savdo', 'Tadbirlar', 'Moliya', 'Startaplar'];
 
-function readTime(body = '') {
-  return `${Math.max(3, Math.ceil(body.length / 800))} daqiqa`;
+function readTimeMin(body = '') {
+  return Math.max(3, Math.ceil(body.length / 800));
+}
+
+function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
 }
 
 export default function NewsPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Hammasi');
   const [posts, setPosts] = useState<NewsPost[]>([]);
@@ -87,7 +93,7 @@ export default function NewsPage() {
                     : 'border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary bg-card/50'
                 )}
               >
-                {cat}
+                {cat === 'Hammasi' ? t('all') : cat}
               </button>
             ))}
           </div>
@@ -109,7 +115,7 @@ export default function NewsPage() {
             <div className="glass-card border-ancient rounded-sm py-20 text-center space-y-4">
               <Newspaper className="w-12 h-12 text-muted-foreground/30 mx-auto" />
               <p className="text-muted-foreground text-sm">
-                {posts.length === 0 ? 'Yangiliklar hali mavjud emas' : 'Hech narsa topilmadi'}
+                {posts.length === 0 ? t('newsEmpty') : t('noResults')}
               </p>
             </div>
           )}
@@ -132,7 +138,7 @@ export default function NewsPage() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent to-navy/50" />
                   <div className="absolute top-4 left-4 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-sm tracking-wider uppercase">
-                    Featured
+                    {t('featuredBadge')}
                   </div>
                 </div>
                 <div className="p-8 space-y-4 flex flex-col justify-center">
@@ -141,21 +147,21 @@ export default function NewsPage() {
                     <span className="text-muted-foreground text-xs">
                       {(featured.published_at || featured.created_at || '').slice(0, 10)}
                     </span>
-                    <span className="text-muted-foreground text-xs">{readTime(featured.body)}</span>
+                    <span className="text-muted-foreground text-xs">{t('readMinutes', { n: readTimeMin(featured.body) })}</span>
                   </div>
                   <h2 className="font-jiang-cheng text-foreground text-xl md:text-2xl font-bold text-balance leading-tight">
-                    {featured.title}
+                    {lf(featured.title, featured.title_ru, featured.title_en, lang)}
                   </h2>
-                  {featured.excerpt && (
-                    <p className="text-muted-foreground text-sm leading-relaxed text-pretty">{featured.excerpt}</p>
+                  {lf(featured.excerpt, featured.excerpt_ru, featured.excerpt_en, lang) && (
+                    <p className="text-muted-foreground text-sm leading-relaxed text-pretty">{lf(featured.excerpt, featured.excerpt_ru, featured.excerpt_en, lang)}</p>
                   )}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <BookOpen className="w-3.5 h-3.5 text-primary" />
-                    <span>Tahririyat</span>
+                    <span>{t('editorial')}</span>
                   </div>
                   <Button asChild variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm w-fit text-sm">
                     <Link to={`/yangiliklar/${featured.id}`}>
-                      To&apos;liq O&apos;qish
+                      {t('readFull')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Link>
                   </Button>
@@ -199,22 +205,22 @@ export default function NewsPage() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-primary" />
-                          {readTime(article.body)}
+                          {t('readMinutes', { n: readTimeMin(article.body) })}
                         </span>
                       </div>
                       <h3 className="font-jiang-cheng text-foreground font-bold text-sm leading-tight text-balance line-clamp-2">
-                        {article.title}
+                        {lf(article.title, article.title_ru, article.title_en, lang)}
                       </h3>
-                      {article.excerpt && (
+                      {lf(article.excerpt, article.excerpt_ru, article.excerpt_en, lang) && (
                         <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-3 flex-1">
-                          {article.excerpt}
+                          {lf(article.excerpt, article.excerpt_ru, article.excerpt_en, lang)}
                         </p>
                       )}
                       <div className="flex items-center justify-between mt-auto pt-2">
-                        <span className="text-xs text-muted-foreground">Tahririyat</span>
+                        <span className="text-xs text-muted-foreground">{t('editorial')}</span>
                         <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 rounded-sm text-xs h-7 px-2">
                           <Link to={`/yangiliklar/${article.id}`}>
-                            O&apos;qish
+                            {t('readLabel')}
                             <ArrowRight className="w-3 h-3 ml-1" />
                           </Link>
                         </Button>

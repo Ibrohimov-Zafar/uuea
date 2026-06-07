@@ -3,11 +3,13 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { unsubscribeByToken } from '@/api/client';
+import { useLang } from '@/contexts/LangContext';
 
 type State = 'loading' | 'success' | 'already' | 'error';
 
 export default function UnsubscribePage() {
   const [params] = useSearchParams();
+  const { t } = useLang();
   const token = params.get('token') ?? '';
   const [state, setState] = useState<State>('loading');
 
@@ -69,10 +71,10 @@ export default function UnsubscribePage() {
           <div className="space-y-2">
             <div className="text-[10px] text-primary/70 tracking-[3px] uppercase">UUEA</div>
             <h1 className="font-jiang-cheng text-xl font-bold text-foreground text-balance">
-              {state === 'loading' && 'Tekshirilmoqda...'}
-              {state === 'success' && "Obunadan Chiqildi"}
-              {state === 'already' && "Allaqachon Chiqilgan"}
-              {state === 'error'   && "Havola Topilmadi"}
+              {state === 'loading' && t('unsubChecking')}
+              {state === 'success' && t('unsubSuccess')}
+              {state === 'already' && t('unsubAlready')}
+              {state === 'error'   && t('unsubLinkError')}
             </h1>
           </div>
 
@@ -81,10 +83,10 @@ export default function UnsubscribePage() {
 
           {/* Body */}
           <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
-            {state === 'loading' && 'Obuna holati tekshirilmoqda, iltimos kuting...'}
-            {state === 'success' && "Emailingiz muvaffaqiyatli obuna ro'yxatidan chiqarildi. Siz endi marketing xatlarini olmaysiz."}
-            {state === 'already' && "Bu email allaqachon obunadan chiqarilgan edi."}
-            {state === 'error'   && "Havola noto'g'ri yoki muddati o'tgan. Iltimos, oxirgi emaildagi havolani ishlating."}
+            {state === 'loading' && t('unsubCheckingDesc')}
+            {state === 'success' && t('unsubSuccessDesc')}
+            {state === 'already' && t('unsubAlreadyDesc')}
+            {state === 'error'   && t('unsubErrorDesc')}
           </p>
 
           {/* CTA */}
@@ -94,7 +96,7 @@ export default function UnsubscribePage() {
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-semibold gap-2 shadow-gold"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Bosh Sahifaga Qaytish
+                {t('backToHome')}
               </Button>
             </Link>
           )}
@@ -102,11 +104,11 @@ export default function UnsubscribePage() {
           {/* Footer note */}
           {state === 'success' && (
             <p className="text-[11px] text-muted-foreground/50">
-              Agar xohlasangiz,{' '}
+              {t('unsubResubNote')}{' '}
               <Link to="/" className="text-primary/70 hover:text-primary underline underline-offset-2">
-                qayta obuna bo&apos;lishingiz
+                {t('resubscribeLink')}
               </Link>
-              {' '}mumkin.
+              {' '}{t('unsubResubEnd')}
             </p>
           )}
         </div>

@@ -17,7 +17,7 @@ import { useLang } from '@/contexts/LangContext';
 
 export default function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [biz, setBiz] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -72,15 +72,15 @@ export default function BusinessDetailPage() {
       <div className="min-h-screen bg-navy-dark pt-20 pb-16">
         <div className="max-w-3xl mx-auto px-4">
           <Link to="/katalog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
-            <ArrowLeft className="w-4 h-4" /> Katalogga qaytish
+            <ArrowLeft className="w-4 h-4" /> {t('backToCatalog')}
           </Link>
 
           {loading ? (
             <Skeleton className="h-80 bg-muted rounded-sm" />
           ) : error || !biz ? (
             <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient">
-              <p className="text-muted-foreground">Biznes topilmadi</p>
-              <Link to="/katalog"><Button className="mt-4">Katalog</Button></Link>
+              <p className="text-muted-foreground">{t('businessNotFound')}</p>
+              <Link to="/katalog"><Button className="mt-4">{t('directory')}</Button></Link>
             </div>
           ) : (
             <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
@@ -101,7 +101,7 @@ export default function BusinessDetailPage() {
               <div className="p-6 space-y-6">
                 {biz.description && (
                   <div>
-                    <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tavsif</h2>
+                    <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('description')}</h2>
                     <p className="text-sm text-muted-foreground leading-relaxed">{biz.description}</p>
                   </div>
                 )}
@@ -139,12 +139,12 @@ export default function BusinessDetailPage() {
                   {websiteUrl && (
                     <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
                       <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
-                        Veb-sayt <ExternalLink className="w-4 h-4 ml-2" />
+                        {t('visitWebsite')} <ExternalLink className="w-4 h-4 ml-2" />
                       </a>
                     </Button>
                   )}
                   <Button asChild variant="ghost" className="border border-border/40 rounded-sm">
-                    <Link to="/katalog"><Building2 className="w-4 h-4 mr-2" /> Boshqa bizneslar</Link>
+                    <Link to="/katalog"><Building2 className="w-4 h-4 mr-2" /> {t('otherBusinesses')}</Link>
                   </Button>
                 </div>
               </div>

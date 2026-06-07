@@ -491,35 +491,55 @@ export const stats = [
   ];
   
   export const timeline = [
-    { year: "2005", title: "Tashkil Etildi", description: "Biznes assotsiatsiya 25 ta asos a'zo bilan tashkil etildi." },
-    { year: "2008", title: "100 A'zo", description: "A'zolar soni 100 taga yetdi. Birinchi yillik forum o'tkazildi." },
-    { year: "2012", title: "Xalqaro Hamkorlik", description: "Yevropa va Osiyo savdo palatalarining a'zosiga aylandi." },
-    { year: "2016", title: "Raqamli Platforma", description: "Online biznes katalog va a'zolik platformasi ishga tushirildi." },
-    { year: "2020", title: "500 A'zo", description: "Koronavirus qiyinchiligiga qaramay, a'zolar soni 500 dan oshdi." },
-    { year: "2023", title: "Yangi Bino", description: "Zamonaviy conference center va co-working maydon ochildi." },
-    { year: "2025", title: "Kelajak", description: "2500+ biznes bilan mintaqaning yetakchi savdo uyushmasi." },
+    { year: "2005", title: "Tashkil Etildi", title_ru: "Основано", title_en: "Founded", description: "Biznes assotsiatsiya 25 ta asos a'zo bilan tashkil etildi.", description_ru: "Бизнес-ассоциация основана 25 учредителями.", description_en: "The business association was founded with 25 founding members." },
+    { year: "2008", title: "100 A'zo", title_ru: "100 Участников", title_en: "100 Members", description: "A'zolar soni 100 taga yetdi. Birinchi yillik forum o'tkazildi.", description_ru: "Число членов достигло 100. Проведён первый ежегодный форум.", description_en: "Membership reached 100. The first annual forum was held." },
+    { year: "2012", title: "Xalqaro Hamkorlik", title_ru: "Международное Партнёрство", title_en: "International Partnership", description: "Yevropa va Osiyo savdo palatalarining a'zosiga aylandi.", description_ru: "Вступили в европейские и азиатские торговые палаты.", description_en: "Joined European and Asian chambers of commerce." },
+    { year: "2016", title: "Raqamli Platforma", title_ru: "Цифровая Платформа", title_en: "Digital Platform", description: "Online biznes katalog va a'zolik platformasi ishga tushirildi.", description_ru: "Запущен онлайн бизнес-каталог и платформа членства.", description_en: "Online business directory and membership platform launched." },
+    { year: "2020", title: "500 A'zo", title_ru: "500 Участников", title_en: "500 Members", description: "Koronavirus qiyinchiligiga qaramay, a'zolar soni 500 dan oshdi.", description_ru: "Несмотря на пандемию, число членов превысило 500.", description_en: "Despite the pandemic, membership exceeded 500." },
+    { year: "2023", title: "Yangi Bino", title_ru: "Новое Здание", title_en: "New Building", description: "Zamonaviy conference center va co-working maydon ochildi.", description_ru: "Открыт современный конференц-центр и коворкинг.", description_en: "A modern conference center and co-working space opened." },
+    { year: "2025", title: "Kelajak", title_ru: "Будущее", title_en: "The Future", description: "2500+ biznes bilan mintaqaning yetakchi savdo uyushmasi.", description_ru: "Ведущая торговая ассоциация региона с 2500+ компаниями.", description_en: "The region's leading trade association with 2500+ businesses." },
   ];
   
   export const faqItems = [
     {
       question: "A'zolik qanday ishlaydi?",
+      question_ru: "Как работает членство?",
+      question_en: "How does membership work?",
       answer: "A'zolikka qo'shilgach, siz darhol barcha imtiyozlardan foydalanishingiz mumkin. Reja tanlagach to'lov amalga oshiriladi va a'zolik faollashadi.",
+      answer_ru: "После вступления вы сразу получаете доступ ко всем привилегиям. После выбора плана производится оплата и членство активируется.",
+      answer_en: "Once you join, you immediately gain access to all benefits. After selecting a plan, payment is made and membership is activated.",
     },
     {
       question: "A'zolikni bekor qilish mumkinmi?",
+      question_ru: "Можно ли отменить членство?",
+      question_en: "Can I cancel my membership?",
       answer: "Ha, istalgan vaqtda a'zolikni bekor qilishingiz mumkin. Yillik to'lov to'liq qaytarilmaydi, ammo qolgan muddat uchun kredit olish mumkin.",
+      answer_ru: "Да, вы можете отменить членство в любое время. Годовой взнос не возвращается, но за оставшийся период предоставляется кредит.",
+      answer_en: "Yes, you can cancel membership at any time. Annual fees are non-refundable, but credit for the remaining period can be obtained.",
     },
     {
       question: "Reja o'zgartirish mumkinmi?",
+      question_ru: "Можно ли изменить план?",
+      question_en: "Can I change my plan?",
       answer: "Ha, istalgan vaqtda rejani yangilashingiz yoki pasaytrishingiz mumkin. O'zgarish keyingi to'lov davridan boshlab kuchga kiradi.",
+      answer_ru: "Да, вы можете повысить или понизить план в любое время. Изменения вступают в силу со следующего платёжного периода.",
+      answer_en: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect from the next billing period.",
     },
     {
       question: "Qo'shimcha foydalanuvchilar qo'shish mumkinmi?",
+      question_ru: "Можно ли добавить дополнительных пользователей?",
+      question_en: "Can I add additional users?",
       answer: "Business va undan yuqori rejalarda bir nechta xodimlarni a'zolikka qo'shish mumkin. Narxlash alohida kelishiladi.",
+      answer_ru: "В планах Business и выше можно добавить нескольких сотрудников. Стоимость согласовывается отдельно.",
+      answer_en: "Business plans and above allow adding multiple employees. Pricing is negotiated separately.",
     },
     {
       question: "Tadbirlar uchun qo'shimcha to'lov kerakmi?",
+      question_ru: "Нужна ли дополнительная оплата за мероприятия?",
+      question_en: "Is there an extra fee for events?",
       answer: "Rejangizga kiritilgan tadbirlar uchun qo'shimcha to'lov kerak emas. Chegaradan tashqari tadbirlar uchun a'zolik narxida chegirma beriladi.",
+      answer_ru: "За мероприятия, включённые в ваш план, дополнительная оплата не требуется. На внеплановые мероприятия предоставляется скидка для членов.",
+      answer_en: "Events included in your plan require no extra fee. Events beyond your plan receive a member discount.",
     },
   ];
   

@@ -11,6 +11,12 @@ import { getLegalResources } from '@/api/client';
 import type { LegalResource } from '@/types/types';
 import { useLang } from '@/contexts/LangContext';
 
+function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 type DisplayItem = {
   id: string;
   title: string;
@@ -21,11 +27,11 @@ type DisplayItem = {
   featured: boolean;
 };
 
-function toDisplay(row: LegalResource): DisplayItem {
+function toDisplay(row: LegalResource, lang: string): DisplayItem {
   return {
     id: row.id,
-    title: row.title,
-    excerpt: row.excerpt,
+    title: lf(row.title, row.title_ru, row.title_en, lang),
+    excerpt: lf(row.excerpt, row.excerpt_ru, row.excerpt_en, lang),
     category: row.category,
     date: row.published_date,
     source: row.source,
@@ -34,16 +40,18 @@ function toDisplay(row: LegalResource): DisplayItem {
 }
 
 export default function LawsPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('Hammasi');
-  const [items, setItems] = useState<DisplayItem[]>([]);
+  const [rawItems, setRawItems] = useState<LegalResource[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const items = rawItems.map(r => toDisplay(r, lang));
 
   useEffect(() => {
     getLegalResources()
-      .then((data) => setItems(data.map(toDisplay)))
-      .catch(() => setItems([]))
+      .then((data) => setRawItems(data))
+      .catch(() => setRawItems([]))
       .finally(() => setLoading(false));
   }, []);
 

@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { getMembershipPlans } from '@/api/client';
 import type { MembershipPlanRow } from '@/types/types';
+import { useLang } from '@/contexts/LangContext';
 
 type PlanGridProps = {
   slugs: readonly string[];
@@ -20,6 +21,7 @@ export default function PlanGrid({
   popularSlug = 'business',
   columns = 'four',
 }: PlanGridProps) {
+  const { t } = useLang();
   const [selected, setSelected] = useState(defaultSelected ?? slugs[0] ?? '');
   const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function PlanGrid({
   if (plans.length === 0) {
     return (
       <p className="text-center text-muted-foreground text-sm py-12">
-        Rejalar tez orada e&apos;lon qilinadi.
+        {t('plansSoon')}
       </p>
     );
   }
@@ -75,14 +77,14 @@ export default function PlanGrid({
         >
           {plan.slug === popularSlug && (
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 vip-badge text-[10px] px-4">
-              Mashhur
+              {t('popularPlan')}
             </div>
           )}
           <div>
             <h3 className="font-jiang-cheng text-foreground text-xl font-bold">{plan.name}</h3>
             <div className="flex items-baseline gap-1 mt-3">
               <span className="text-primary font-jiang-cheng text-4xl font-bold">${plan.price_usd}</span>
-              <span className="text-muted-foreground text-xs">/yil</span>
+              <span className="text-muted-foreground text-xs">{t('perYear')}</span>
             </div>
           </div>
           <div className="section-divider" />
@@ -103,7 +105,7 @@ export default function PlanGrid({
                   : 'bg-accent hover:bg-primary/10 text-foreground border border-border hover:border-primary/40 hover:text-primary'
               )}
             >
-              Tanlash
+              {t('selectPlan')}
             </Button>
           </Link>
         </div>

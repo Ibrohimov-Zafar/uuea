@@ -108,8 +108,14 @@ export async function adminListLegalResources(): Promise<LegalResource[]> {
 export type LegalResourcePayload = {
   id?: string;
   title: string;
+  title_ru?: string;
+  title_en?: string;
   excerpt: string;
+  excerpt_ru?: string;
+  excerpt_en?: string;
   body: string;
+  body_ru?: string;
+  body_en?: string;
   category: string;
   resource_type: string;
   source: string;
@@ -117,6 +123,25 @@ export type LegalResourcePayload = {
   is_featured?: boolean;
   status?: 'published' | 'draft';
 };
+
+export type AdminNewsPayload = {
+  title: string;
+  title_ru?: string;
+  title_en?: string;
+  excerpt?: string;
+  excerpt_ru?: string;
+  excerpt_en?: string;
+  body: string;
+  body_ru?: string;
+  body_en?: string;
+  category?: string;
+  image_url?: string;
+};
+
+export async function adminCreateNews(body: AdminNewsPayload): Promise<{ id: string }> {
+  const { data } = await http.post<{ id: string }>('/admin/news', body);
+  return data;
+}
 
 export async function adminUpsertLegalResource(body: LegalResourcePayload): Promise<{ id: string }> {
   const { data } = await http.post<{ id: string }>('/admin/legal-resources', body);

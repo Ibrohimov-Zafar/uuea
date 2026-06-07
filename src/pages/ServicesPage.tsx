@@ -17,15 +17,15 @@ const iconMap: Record<string, React.ReactNode> = {
   Users:      <Users className="w-8 h-8" />,
 };
 
-const STEPS = [
-  { step: '01', title: "A'zolikka Qo'shiling",  desc: "Biznesingizga mos reja tanlang va ro'yxatdan o'ting." },
-  { step: '02', title: 'Ehtiyojlarni Aniqlang', desc: "Mutaxassislarimiz bilan maslahat o'tkazing va rejalashtiring." },
-  { step: '03', title: "Xizmatlardan Foydalaning", desc: "Tanlagan xizmatlaringizni to'liq qo'llang va natija oling." },
-  { step: '04', title: "O'sishni Kuzating",      desc: 'Analitika va hisobotlar orqali samaradorlikni baholang.' },
-];
 
 export default function ServicesPage() {
   const { t } = useLang();
+  const STEPS = [
+    { step: '01', title: t('step1Title'), desc: t('step1Desc') },
+    { step: '02', title: t('step2Title'), desc: t('step2Desc') },
+    { step: '03', title: t('step3Title'), desc: t('step3Desc') },
+    { step: '04', title: t('step4Title'), desc: t('step4Desc') },
+  ];
   const [services, setServices] = useState<SiteService[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +65,7 @@ export default function ServicesPage() {
             </div>
           ) : services.length === 0 ? (
             <div className="glass-card border-ancient rounded-sm py-20 text-center">
-              <p className="text-muted-foreground text-sm">Xizmatlar hozircha mavjud emas</p>
+              <p className="text-muted-foreground text-sm">{t('servicesEmpty')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -91,7 +91,7 @@ export default function ServicesPage() {
                   )}
                   <Link to="/aloqa" className="mt-auto">
                     <Button variant="ghost" className="border border-primary/30 text-primary hover:bg-primary/10 rounded-sm text-xs w-full">
-                      Batafsil Ma&apos;lumot
+                      {t('learnMoreDetail')}
                       <ArrowRight className="w-3 h-3 ml-1.5" />
                     </Button>
                   </Link>
@@ -107,10 +107,10 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center space-y-4 mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-              Jarayon
+              {t('processLabel')}
             </div>
             <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-              Qanday Ishlaydi?
+              {t('howItWorks')}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -129,21 +129,21 @@ export default function ServicesPage() {
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-3xl mx-auto px-6 text-center space-y-6">
           <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-            Qaysi Xizmat Sizga Kerak?
+            {t('whichServiceTitle')}
           </h2>
           <p className="text-muted-foreground text-pretty leading-relaxed">
-            Mutaxassislarimiz bilan bog&apos;laning va biznesingizga mos xizmatlar to&apos;plamini tuzing.
+            {t('contactExpertDesc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/aloqa">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-10">
-                Biz Bilan Bog&apos;laning
+                {t('contactUsBtn')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Link to="/qoshilish">
               <Button size="lg" variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm px-10">
-                A&apos;zolikga Qo&apos;shilish
+                {t('joinMembershipBtn')}
               </Button>
             </Link>
           </div>

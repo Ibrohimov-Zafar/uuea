@@ -80,6 +80,43 @@ func (a *API) CreateNews(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"id": id})
 }
 
+// Admin: directly create an approved news post with multilingual content
+func (a *API) AdminCreateNews(w http.ResponseWriter, r *http.Request) {
+	adminID := middleware.UserID(r)
+	var body map[string]any
+	if err := readJSON(r, &body); err != nil {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	title := strings.TrimSpace(str(body["title"]))
+	content := strings.TrimSpace(str(body["body"]))
+	if len(title) < 3 || len(content) < 10 {
+		errJSON(w, http.StatusBadRequest, "invalid_input")
+		return
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	id := uuid.NewString()
+	category := "Boshqa"
+	if c := strings.TrimSpace(str(body["category"])); c != "" {
+		category = c
+	}
+	_, err := a.DB.Exec(
+		`INSERT INTO news_posts (id, author_id, title, title_ru, title_en, excerpt, excerpt_ru, excerpt_en, body, body_ru, body_en, category, image_url, status, is_featured, published_at, created_at, updated_at)
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'approved',0,?,?,?)`,
+		id, nullIfEmpty(adminID),
+		title, nullIfEmpty(str(body["title_ru"])), nullIfEmpty(str(body["title_en"])),
+		nullIfEmpty(str(body["excerpt"])), nullIfEmpty(str(body["excerpt_ru"])), nullIfEmpty(str(body["excerpt_en"])),
+		content, nullIfEmpty(str(body["body_ru"])), nullIfEmpty(str(body["body_en"])),
+		category, nullIfEmpty(str(body["image_url"])),
+		now, now, now,
+	)
+	if err != nil {
+		errJSON(w, http.StatusInternalServerError, "server_error")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"id": id})
+}
+
 // Admin: list all (pending + approved + rejected)
 func (a *API) AdminListNews(w http.ResponseWriter, r *http.Request) {
 	rows, err := a.DB.Query(`SELECT * FROM news_posts ORDER BY created_at DESC LIMIT 200`)

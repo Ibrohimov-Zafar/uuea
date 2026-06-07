@@ -16,9 +16,15 @@ import {
   jsonLdBundle,
 } from '@/config/seo';
 
+function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 export default function NewsDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [post, setPost] = useState<NewsPost | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,14 +78,14 @@ export default function NewsDetailPage() {
       <div className="min-h-screen bg-navy-dark pt-20 pb-16">
         <div className="max-w-3xl mx-auto px-4">
           <Link to="/yangiliklar" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
-            <ArrowLeft className="w-4 h-4" /> Yangiliklarga qaytish
+            <ArrowLeft className="w-4 h-4" /> {t('backToNews')}
           </Link>
 
           {loading ? (
             <Skeleton className="h-96 bg-muted rounded-sm" />
           ) : !post ? (
             <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient">
-              <p className="text-muted-foreground">Maqola topilmadi</p>
+              <p className="text-muted-foreground">{t('articleNotFound')}</p>
             </div>
           ) : (
             <article className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
@@ -97,19 +103,19 @@ export default function NewsDetailPage() {
                     </span>
                   )}
                   <span className="flex items-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5 text-primary" /> Tahririyat
+                    <BookOpen className="w-3.5 h-3.5 text-primary" /> {t('editorial')}
                   </span>
                 </div>
                 <h1 className="font-jiang-cheng text-foreground text-2xl md:text-3xl font-bold text-balance leading-tight">
-                  {post.title}
+                  {lf(post.title, post.title_ru, post.title_en, lang)}
                 </h1>
-                {post.excerpt && (
+                {lf(post.excerpt, post.excerpt_ru, post.excerpt_en, lang) && (
                   <p className="text-muted-foreground text-base leading-relaxed border-l-2 border-primary/40 pl-4">
-                    {post.excerpt}
+                    {lf(post.excerpt, post.excerpt_ru, post.excerpt_en, lang)}
                   </p>
                 )}
                 <div className="prose prose-invert max-w-none text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {post.body}
+                  {lf(post.body, post.body_ru, post.body_en, lang)}
                 </div>
               </div>
             </article>

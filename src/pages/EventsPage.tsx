@@ -16,6 +16,12 @@ import type { Event } from '@/types/types';
 
 const EVENT_CATEGORIES = ['Hammasi', 'Forum', 'Networking', 'Trening', 'Gala', 'Summit', 'Suhbat'];
 
+function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 interface RegForm { full_name: string; email: string; phone: string; company: string }
 
 export default function EventsPage() {
@@ -70,8 +76,8 @@ export default function EventsPage() {
 
   const handleRegister = async () => {
     if (!selectedEvent) return;
-    if (!regForm.full_name.trim() || !regForm.email.trim()) { toast.error('Ism va email majburiy'); return; }
-    if (!/\S+@\S+\.\S+/.test(regForm.email)) { toast.error("To'g'ri email kiriting"); return; }
+    if (!regForm.full_name.trim() || !regForm.email.trim()) { toast.error(t('nameEmailRequired')); return; }
+    if (!/\S+@\S+\.\S+/.test(regForm.email)) { toast.error(t('validEmail')); return; }
     setRegistering(true);
     setRegError(null);
     try {
@@ -84,10 +90,10 @@ export default function EventsPage() {
         company: regForm.company || null,
       }) as { free?: boolean; url?: string };
 
-      if (!result) throw new Error('Server javobi yo\'q');
+      if (!result) throw new Error(t('tryAgain'));
 
       if (result.free) {
-        toast.success('Muvaffaqiyatli ro\'yxatdan o\'tdingiz!');
+        toast.success(t('registeredSuccessMsg'));
         setRegisteredIds((prev) => new Set(prev).add(selectedEvent.id));
         setSelectedEvent(null);
         const updated = await getEventSpots(selectedEvent.id);
@@ -99,7 +105,7 @@ export default function EventsPage() {
         window.location.href = result.url;
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      const msg = err instanceof Error ? err.message : t('tryAgain');
       setRegError(msg);
       toast.error(msg);
     } finally {
@@ -125,19 +131,19 @@ export default function EventsPage() {
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-primary/30 bg-primary/5 rounded-sm mb-4">
               <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span className="text-primary text-xs font-semibold tracking-wider">TADBIRLAR TAQVIMI</span>
+              <span className="text-primary text-xs font-semibold tracking-wider">{t('eventsCalendarBadge')}</span>
             </div>
             <h1 className="font-jiang-cheng text-foreground text-3xl md:text-5xl font-bold mb-4 text-balance">
-              Biznes <span className="gradient-text">Tadbirlari</span>
+              {t('businessEventsTitle')}
             </h1>
             <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto text-pretty">
-              Tarmoqlash, o'rganish va biznes imkoniyatlarini kengaytirish uchun tadbirlarimizga qo'shiling
+              {t('eventsPageSub')}
             </p>
             <div className="flex items-center justify-center gap-8 mt-8 flex-wrap">
               {[
-                { label: "Yillik Tadbirlar", value: `${events.length}+` },
-                { label: "Kelayotgan Tadbirlar", value: upcomingCount },
-                { label: "Ishtirokchilar", value: "2500+" },
+                { label: t('annualEventsLabel'), value: `${events.length}+` },
+                { label: t('upcomingEventsLabel'), value: upcomingCount },
+                { label: t('participantsLabel'), value: "2500+" },
               ].map(stat => (
                 <div key={stat.label} className="text-center">
                   <div className="font-jiang-cheng text-primary text-3xl font-bold">{stat.value}</div>
@@ -153,7 +159,7 @@ export default function EventsPage() {
           <div className="max-w-7xl mx-auto px-6 pb-12">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-px bg-primary/30 flex-1" />
-              <span className="font-jiang-cheng text-primary text-xs tracking-widest uppercase">Tanlangan Tadbirlar</span>
+              <span className="font-jiang-cheng text-primary text-xs tracking-widest uppercase">{t('featuredEventsSection')}</span>
               <div className="h-px bg-primary/30 flex-1" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,7 +176,7 @@ export default function EventsPage() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Tadbirlarni qidirish..."
+                placeholder={t('eventsSearchPh')}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 className="pl-9 bg-background/60 border-border/60 rounded-sm"
@@ -184,7 +190,7 @@ export default function EventsPage() {
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary'
                   )}>
-                  {cat}
+                  {cat === 'Hammasi' ? t('all') : cat}
                 </button>
               ))}
             </div>
@@ -197,7 +203,7 @@ export default function EventsPage() {
           ) : filtered.length === 0 ? (
             <div className="py-24 text-center">
               <Calendar className="w-12 h-12 text-primary/20 mx-auto mb-4" />
-              <p className="text-muted-foreground">Tadbirlar topilmadi</p>
+              <p className="text-muted-foreground">{t('eventsNotFound')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -220,8 +226,8 @@ export default function EventsPage() {
           {selectedEvent && registeredIds.has(selectedEvent.id) ? (
             <div className="py-6 text-center space-y-3">
               <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
-              <p className="font-jiang-cheng text-foreground font-bold">Siz bu tadbirga ro'yxatdan o'tgansiz</p>
-              <p className="text-muted-foreground text-sm">Tadbir kuni email orqali eslatma olasiz</p>
+              <p className="font-jiang-cheng text-foreground font-bold">{t('eventRegisteredMsg')}</p>
+              <p className="text-muted-foreground text-sm">{t('eventReminderMsg')}</p>
             </div>
           ) : selectedEvent && (
             <div className="space-y-4 py-2">
@@ -241,7 +247,7 @@ export default function EventsPage() {
                     {selectedEvent.price_usd > 0 ? `$${selectedEvent.price_usd}` : t('free')}
                   </span>
                   {selectedEvent.spots_remaining > 0 && selectedEvent.spots_remaining <= 10 && (
-                    <span className="text-yellow-400 text-[10px]">· Faqat {selectedEvent.spots_remaining} ta joy!</span>
+                    <span className="text-yellow-400 text-[10px]">· {t('eventSpotsOnlyN', { n: selectedEvent.spots_remaining })}</span>
                   )}
                 </div>
               </div>
@@ -249,10 +255,10 @@ export default function EventsPage() {
               {/* Registration form */}
               <div className="space-y-3">
                 {([
-                  { label: 'Ism Familiya *', field: 'full_name' as const, ph: 'Ism Familiya', type: 'text' },
-                  { label: 'Email *', field: 'email' as const, ph: 'email@example.com', type: 'email' },
-                  { label: 'Telefon', field: 'phone' as const, ph: '+998 90 ...', type: 'tel' },
-                  { label: 'Kompaniya', field: 'company' as const, ph: 'Kompaniya nomi (ixtiyoriy)', type: 'text' },
+                  { label: t('fullNameRequired'), field: 'full_name' as const, ph: t('fullName'), type: 'text' },
+                  { label: t('emailRequired'),    field: 'email' as const,     ph: 'email@example.com', type: 'email' },
+                  { label: t('phone'),            field: 'phone' as const,     ph: '+998 90 ...', type: 'tel' },
+                  { label: t('company'),          field: 'company' as const,   ph: t('companyOptionalPh'), type: 'text' },
                 ] as { label: string; field: keyof RegForm; ph: string; type: string }[]).map(({ label, field, ph, type }) => (
                   <div key={field} className="space-y-1.5">
                     <Label className="text-xs font-normal text-muted-foreground">{label}</Label>
@@ -285,7 +291,7 @@ export default function EventsPage() {
           <DialogFooter>
             {selectedEvent && registeredIds.has(selectedEvent.id) ? (
               <Button onClick={() => setSelectedEvent(null)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm w-full">
-                Yopish
+                {t('close')}
               </Button>
             ) : (
               <>
@@ -317,7 +323,7 @@ export default function EventsPage() {
 function EventCard({ event, onClick, featured = false, registered = false }: {
   event: Event; onClick: () => void; featured?: boolean; registered?: boolean;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const isUpcoming = new Date(event.event_date) >= new Date();
   const spotsLow = event.spots_remaining > 0 && event.spots_remaining <= 10;
 
@@ -333,7 +339,7 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
         <div className="aspect-[16/9] relative overflow-hidden shrink-0">
           <img
             src={event.image_url}
-            alt={event.title}
+            alt={lf(event.title, event.title_ru, event.title_en, lang)}
             className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
@@ -365,7 +371,7 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
 
       <div className="p-5 flex flex-col flex-1">
         <h3 className="font-jiang-cheng text-foreground font-bold text-sm mb-3 leading-snug line-clamp-2 text-balance">
-          {event.title}
+          {lf(event.title, event.title_ru, event.title_en, lang)}
         </h3>
         <div className="space-y-1.5 mb-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -383,16 +389,16 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
             </span>
           </div>
         </div>
-        {event.description && (
+        {lf(event.description, event.description_ru, event.description_en, lang) && (
           <p className="text-muted-foreground text-xs leading-relaxed mb-4 line-clamp-2 flex-1 text-pretty">
-            {event.description}
+            {lf(event.description, event.description_ru, event.description_en, lang)}
           </p>
         )}
 
         <div className="mt-auto space-y-2">
           {registered ? (
             <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-sm border border-green-400/30 bg-green-400/10 text-green-400 text-sm font-semibold">
-              <CheckCircle className="w-4 h-4" /> Ro&apos;yxatdan o&apos;tilgan
+              <CheckCircle className="w-4 h-4" /> {t('registered')}
             </div>
           ) : (
             <Button
@@ -405,7 +411,7 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
               onClick={event.spots_remaining > 0 && isUpcoming ? onClick : undefined}
               disabled={event.spots_remaining <= 0 || !isUpcoming}
             >
-              {!isUpcoming ? 'Tadbir tugagan'
+              {!isUpcoming ? t('eventFinishedLabel')
                 : event.spots_remaining <= 0 ? t('noSpots')
                 : event.price_usd > 0 ? t('payAndRegister') : t('registerEvent')}
             </Button>
@@ -415,7 +421,7 @@ function EventCard({ event, onClick, featured = false, registered = false }: {
             className="flex items-center justify-center gap-1.5 w-full py-2 text-xs text-muted-foreground hover:text-primary transition-colors border border-border/40 hover:border-primary/30 rounded-sm"
           >
             <ExternalLink className="w-3 h-3" />
-            Batafsil ko&apos;rish
+            {t('viewDetailsLabel')}
           </Link>
         </div>
       </div>

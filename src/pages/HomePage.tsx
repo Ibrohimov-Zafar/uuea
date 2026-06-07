@@ -324,13 +324,14 @@ function StatsSection({ stats }: { stats: SiteStat[] }) {
 
 // ---- Core Services Section ----
 function ServicesSection({ services }: { services: SiteService[] }) {
+  const { t } = useLang();
   return (
     <section className="py-20 bg-background relative bg-sacred-geometry">
       <div className="max-w-7xl mx-auto px-6">
         <SectionHeading
-          subtitle="Xizmatlarimiz"
-          title="Biznesingizni Kuchaytiruvchi Xizmatlar"
-          description="UUEA a'zolari uchun asosiy xizmatlar — AQSh va O'zbekiston o'rtasida biznes aloqalarini rivojlantirish."
+          subtitle={t('homeServicesBadge')}
+          title={t('homeServicesTitle')}
+          description={t('homeServicesSub')}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.slice(0, 4).map((svc) => (
@@ -352,7 +353,7 @@ function ServicesSection({ services }: { services: SiteService[] }) {
         <div className="text-center mt-10">
           <Link to="/xizmatlar">
             <Button variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm">
-              Barcha Xizmatlar
+              {t('homeServicesBtn')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
@@ -364,12 +365,13 @@ function ServicesSection({ services }: { services: SiteService[] }) {
 
 // ---- Partners Section ----
 function PartnersSection({ partners }: { partners: Partner[] }) {
+  const { t } = useLang();
   if (partners.length === 0) return null;
   const doubled = [...partners, ...partners];
   return (
     <section className="py-16 bg-navy-light border-y border-border/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 mb-10">
-        <SectionHeading subtitle="Hamkorlar" title="Yirik Hamkorlar va Investorlar" />
+        <SectionHeading subtitle={t('partnersBadge')} title={t('homePartnersTitle')} />
       </div>
       <div className="relative">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">
@@ -418,8 +420,8 @@ function useCarouselVisible() {
   return visible;
 }
 
-function EventCard({ ev, registerLabel }: { ev: HomeEvent; registerLabel: string }) {
-  const price = ev.price_usd === 0 ? "Bepul a'zolarga" : `$${ev.price_usd}`;
+function EventCard({ ev, registerLabel, freeLabel }: { ev: HomeEvent; registerLabel: string; freeLabel: string }) {
+  const price = ev.price_usd === 0 ? freeLabel : `$${ev.price_usd}`;
   return (
     <div className="glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group flex flex-col h-full">
       <div className="aspect-[16/9] bg-muted relative overflow-hidden shrink-0">
@@ -477,7 +479,7 @@ function EventsSection({ events }: { events: Event[] }) {
     <section className="py-16 sm:py-20 bg-background bg-sacred-geometry">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col gap-6 mb-8 md:flex-row md:items-end md:justify-between md:mb-12">
-          <SectionHeading subtitle="Tadbirlar" title="Kelgusi Tadbirlar" />
+          <SectionHeading subtitle={t('homeEventsBadge')} title={t('homeEventsTitle')} />
           <div className="hidden md:flex gap-2 shrink-0 self-end">
             <Button
               size="icon"
@@ -505,7 +507,7 @@ function EventsSection({ events }: { events: Event[] }) {
         {/* Mobile: full-width stacked cards */}
         <div className="flex flex-col gap-4 md:hidden">
           {events.slice(0, 4).map((ev) => (
-            <EventCard key={ev.id} ev={ev} registerLabel={t('registerEvent')} />
+            <EventCard key={ev.id} ev={ev} registerLabel={t('registerEvent')} freeLabel={t('freeForMembers')} />
           ))}
         </div>
 
@@ -517,7 +519,7 @@ function EventsSection({ events }: { events: Event[] }) {
           >
             {events.map((ev) => (
               <div key={ev.id} className="shrink-0" style={{ width: slideWidth }}>
-                <EventCard ev={ev} registerLabel={t('registerEvent')} />
+                <EventCard ev={ev} registerLabel={t('registerEvent')} freeLabel={t('freeForMembers')} />
               </div>
             ))}
           </div>
@@ -526,7 +528,7 @@ function EventsSection({ events }: { events: Event[] }) {
         <div className="text-center mt-8 sm:mt-10">
           <Link to="/tadbirlar">
             <Button variant="ghost" className="w-full sm:w-auto border border-primary/40 text-primary hover:bg-primary/10 rounded-sm">
-              Barcha Tadbirlar
+              {t('homeEventsBtn')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
@@ -538,6 +540,7 @@ function EventsSection({ events }: { events: Event[] }) {
 
 // ---- Directory Preview ----
 function DirectoryPreview({ businesses }: { businesses: Business[] }) {
+  const { t } = useLang();
   const [query, setQuery] = useState('');
   const filtered = businesses.filter(b =>
     b.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -548,14 +551,14 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
     <section className="py-20 bg-navy-light border-y border-border/50">
       <div className="max-w-7xl mx-auto px-6">
         <SectionHeading
-          subtitle="Biznes Katalog"
-          title="Biznes Katalogini Ko'ring"
-          description="Mintaqaning eng yirik biznes ma'lumotlar bazasida qidiring va hamkor toping."
+          subtitle={t('homeCatalogBadge')}
+          title={t('homeCatalogTitle')}
+          description={t('homeCatalogSub')}
         />
         <div className="max-w-lg mx-auto mb-10 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Kompaniya nomi yoki kategoriya..."
+            placeholder={t('homeCatalogSearchPh')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-10 bg-card border-border/60 rounded-sm focus-visible:ring-primary text-sm"
@@ -582,12 +585,12 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
           ))}
         </div>
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">Hech narsa topilmadi</div>
+          <div className="text-center py-12 text-muted-foreground">{t('homeCatalogEmpty')}</div>
         )}
         <div className="text-center mt-10">
           <Link to="/katalog">
             <Button variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm">
-              Barcha Bizneslar
+              {t('homeCatalogBtn')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
@@ -659,6 +662,7 @@ function MembershipSection() {
 
 // ---- Testimonials ----
 function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
+  const { t } = useLang();
   const [active, setActive] = useState(0);
 
   if (testimonials.length === 0) return null;
@@ -667,7 +671,7 @@ function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) 
   return (
     <section className="py-20 bg-navy-light border-y border-border/50 bg-sacred-geometry">
       <div className="max-w-7xl mx-auto px-6">
-        <SectionHeading subtitle="Sharhlar" title="A'zolarimiz Nima Deydi" />
+        <SectionHeading subtitle={t('testimonialsBadge')} title={t('testimonialsTitle')} />
         <div className="max-w-3xl mx-auto">
           <div className="glass-card border-ancient rounded-sm p-8 md:p-12 text-center relative card-ancient">
             <div className="flex justify-center mb-2">
@@ -742,13 +746,13 @@ function NewsletterSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-navy-dark via-navy to-navy-dark" />
       <div className="relative max-w-3xl mx-auto px-6 text-center">
         <SectionHeading
-          subtitle="Xabarnoma"
-          title="Yangiliklar va Tadbirlardan Xabardor Bo'ling"
-          description="Haftalik yangiliklar, biznes maslahatlar va tadbirlar haqida birinchi bo'lib xabar oling."
+          subtitle={t('homeNewsletterBadge')}
+          title={t('homeNewsletterTitle')}
+          description={t('homeNewsletterSub')}
         />
         <div className="max-w-md mx-auto">
           <Input
-            placeholder="Email manzilingiz"
+            placeholder={t('homeNewsletterEmailPh')}
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -762,7 +766,7 @@ function NewsletterSection() {
           onClick={handleSubscribe}
           className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-10 text-sm"
         >
-          {submitting ? '...' : "Obuna Bo'lish"}
+          {submitting ? '...' : t('homeNewsletterBtn')}
         </Button>
       </div>
     </section>

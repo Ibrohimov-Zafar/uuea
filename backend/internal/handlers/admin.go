@@ -210,8 +210,10 @@ func (a *API) AdminUpsertEvent(w http.ResponseWriter, r *http.Request) {
 		spotsRemaining = spotsTotal
 	}
 	if id != "" {
-		_, err := a.DB.Exec(`UPDATE events SET title=?, description=?, category=?, location=?, event_date=?, event_time=?, price_usd=?, spots_total=?, spots_remaining=?, image_url=?, is_featured=?, is_active=?, updated_at=? WHERE id=?`,
-			str(body["title"]), str(body["description"]), str(body["category"]), str(body["location"]),
+		_, err := a.DB.Exec(`UPDATE events SET title=?, title_ru=?, title_en=?, description=?, description_ru=?, description_en=?, category=?, location=?, event_date=?, event_time=?, price_usd=?, spots_total=?, spots_remaining=?, image_url=?, is_featured=?, is_active=?, updated_at=? WHERE id=?`,
+			str(body["title"]), nullIfEmpty(str(body["title_ru"])), nullIfEmpty(str(body["title_en"])),
+			str(body["description"]), nullIfEmpty(str(body["description_ru"])), nullIfEmpty(str(body["description_en"])),
+			str(body["category"]), str(body["location"]),
 			str(body["event_date"]), str(body["event_time"]), num(body["price_usd"]), spotsTotal, spotsRemaining,
 			str(body["image_url"]), boolInt(boolVal(body["is_featured"])), boolInt(boolVal(body["is_active"])), now, id)
 		if err != nil {
@@ -222,9 +224,11 @@ func (a *API) AdminUpsertEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id = uuid.NewString()
-	_, err := a.DB.Exec(`INSERT INTO events (id, title, description, category, location, event_date, event_time, price_usd, spots_total, spots_remaining, image_url, is_featured, is_active, created_at, updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		id, str(body["title"]), str(body["description"]), str(body["category"]), str(body["location"]),
+	_, err := a.DB.Exec(`INSERT INTO events (id, title, title_ru, title_en, description, description_ru, description_en, category, location, event_date, event_time, price_usd, spots_total, spots_remaining, image_url, is_featured, is_active, created_at, updated_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		id, str(body["title"]), nullIfEmpty(str(body["title_ru"])), nullIfEmpty(str(body["title_en"])),
+		str(body["description"]), nullIfEmpty(str(body["description_ru"])), nullIfEmpty(str(body["description_en"])),
+		str(body["category"]), str(body["location"]),
 		str(body["event_date"]), str(body["event_time"]), num(body["price_usd"]), spotsTotal, spotsRemaining,
 		str(body["image_url"]), boolInt(boolVal(body["is_featured"])), boolInt(boolVal(body["is_active"])), now, now)
 	if err != nil {
@@ -382,8 +386,8 @@ func (a *API) AdminCreateCampaign(w http.ResponseWriter, r *http.Request) {
 	}
 	id := uuid.NewString()
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err := a.DB.Exec(`INSERT INTO email_campaigns (id, subject, body, scheduled_at, status, target_source, created_at) VALUES (?,?,?,?,?,?,?)`,
-		id, str(body["subject"]), str(body["body"]), str(body["scheduled_at"]), "scheduled", str(body["target_source"]), now)
+	_, err := a.DB.Exec(`INSERT INTO email_campaigns (id, subject, body, logo_url, scheduled_at, status, target_source, created_at) VALUES (?,?,?,?,?,?,?,?)`,
+		id, str(body["subject"]), str(body["body"]), nullIfEmpty(str(body["logo_url"])), str(body["scheduled_at"]), "scheduled", str(body["target_source"]), now)
 	if err != nil {
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return

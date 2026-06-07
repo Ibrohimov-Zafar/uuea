@@ -13,8 +13,14 @@ import { INDIVIDUAL_PLAN_SLUGS } from '@/config/membership';
 import { useLang } from '@/contexts/LangContext';
 import { faqItems } from '@/data/mockData';
 
+function lf(uz: string, ru: string | undefined, en: string | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 export default function MembershipPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   return (
     <Layout>
@@ -49,21 +55,21 @@ export default function MembershipPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center space-y-4 mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-              Imtiyozlar
+              {t('benefitsBadge')}
             </div>
             <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
               {t('membershipBenefitsTitle')}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { title: "Biznes Katalogda Ro'yxat", desc: "Kompaniyangizni katalogda ko'rsating va yangi hamkorlar toping." },
-              { title: 'Tadbirlar va Networking', desc: "A'zolik rejangizga mos tadbirlar va forumlar kirish imkoniyati." },
-              { title: 'Professional Maslahatlar', desc: "Huquqiy, moliyaviy va marketing bo'yicha yo'naltirish." },
-              { title: 'Tarmoqlash', desc: 'Oylik uchrashuvlar va AQSh–O\'zbekiston biznes aloqalari.' },
-              { title: 'Newsletter va Yangiliklar', desc: 'Sohaviy yangiliklar va imkoniyatlar haqida xabarnoma.' },
-              { title: "A'zo Forumi", desc: "Tadbirkorlar bilan onlayn va oflayn muloqot." },
-            ].map((item) => (
+            {([
+              { title: t('memberBenefit1Title'), desc: t('memberBenefit1Desc') },
+              { title: t('memberBenefit2Title'), desc: t('memberBenefit2Desc') },
+              { title: t('memberBenefit3Title'), desc: t('memberBenefit3Desc') },
+              { title: t('memberBenefit4Title'), desc: t('memberBenefit4Desc') },
+              { title: t('memberBenefit5Title'), desc: t('memberBenefit5Desc') },
+              { title: t('memberBenefit6Title'), desc: t('memberBenefit6Desc') },
+            ] as { title: string; desc: string }[]).map((item) => (
               <div key={item.title} className="glass-card border-ancient rounded-sm p-6 space-y-3 hover-gold-glow card-ancient">
                 <div className="w-2 h-6 bg-primary rounded-sm" />
                 <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance">{item.title}</h4>
@@ -90,10 +96,10 @@ export default function MembershipPage() {
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center space-y-4 mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-              FAQ
+              {t('faqBadge')}
             </div>
             <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-              Tez-Tez So&apos;raladigan Savollar
+              {t('faqTitle')}
             </h2>
           </div>
           <Accordion type="single" collapsible className="space-y-3">
@@ -104,10 +110,10 @@ export default function MembershipPage() {
                 className="glass-card border-ancient rounded-sm px-5 border border-border/60 hover:border-primary/40 transition-colors"
               >
                 <AccordionTrigger className="font-jiang-cheng text-foreground text-sm font-semibold py-4 hover:no-underline hover:text-primary [&[data-state=open]]:text-primary">
-                  {item.question}
+                  {lf(item.question, item.question_ru, item.question_en, lang)}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-4 text-pretty">
-                  {item.answer}
+                  {lf(item.answer, item.answer_ru, item.answer_en, lang)}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -130,7 +136,7 @@ export default function MembershipPage() {
             </Link>
             <Link to="/aloqa">
               <Button size="lg" variant="ghost" className="border border-primary/40 text-primary hover:bg-primary/10 rounded-sm px-10">
-                Savol Berish
+                {t('askQuestion')}
               </Button>
             </Link>
           </div>

@@ -53,16 +53,22 @@ func (a *API) AdminListLegalResources(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		ID             string `json:"id"`
-		Title          string `json:"title"`
-		Excerpt        string `json:"excerpt"`
-		Body           string `json:"body"`
-		Category       string `json:"category"`
-		ResourceType   string `json:"resource_type"`
-		Source         string `json:"source"`
-		PublishedDate  string `json:"published_date"`
-		IsFeatured     bool   `json:"is_featured"`
-		Status         string `json:"status"`
+		ID            string `json:"id"`
+		Title         string `json:"title"`
+		TitleRu       string `json:"title_ru"`
+		TitleEn       string `json:"title_en"`
+		Excerpt       string `json:"excerpt"`
+		ExcerptRu     string `json:"excerpt_ru"`
+		ExcerptEn     string `json:"excerpt_en"`
+		Body          string `json:"body"`
+		BodyRu        string `json:"body_ru"`
+		BodyEn        string `json:"body_en"`
+		Category      string `json:"category"`
+		ResourceType  string `json:"resource_type"`
+		Source        string `json:"source"`
+		PublishedDate string `json:"published_date"`
+		IsFeatured    bool   `json:"is_featured"`
+		Status        string `json:"status"`
 	}
 	if err := readJSON(r, &body); err != nil {
 		errJSON(w, http.StatusBadRequest, "invalid_input")
@@ -99,13 +105,19 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 	if body.IsFeatured {
 		feat = 1
 	}
+	titleRu := nullIfEmpty(strings.TrimSpace(body.TitleRu))
+	titleEn := nullIfEmpty(strings.TrimSpace(body.TitleEn))
+	excerptRu := nullIfEmpty(strings.TrimSpace(body.ExcerptRu))
+	excerptEn := nullIfEmpty(strings.TrimSpace(body.ExcerptEn))
+	bodyRu := nullIfEmpty(strings.TrimSpace(body.BodyRu))
+	bodyEn := nullIfEmpty(strings.TrimSpace(body.BodyEn))
 	now := time.Now().UTC().Format(time.RFC3339)
 	id := strings.TrimSpace(body.ID)
 	if id == "" {
 		id = uuid.NewString()
-		_, err := a.DB.Exec(`INSERT INTO legal_resources (id, title, excerpt, body, category, resource_type, source, published_date, is_featured, status, created_at, updated_at)
-			VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-			id, title, excerpt, content, category, rtype, source, pubDate, feat, status, now, now)
+		_, err := a.DB.Exec(`INSERT INTO legal_resources (id, title, title_ru, title_en, excerpt, excerpt_ru, excerpt_en, body, body_ru, body_en, category, resource_type, source, published_date, is_featured, status, created_at, updated_at)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			id, title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, pubDate, feat, status, now, now)
 		if err != nil {
 			errJSON(w, http.StatusInternalServerError, "server_error")
 			return
@@ -113,8 +125,8 @@ func (a *API) AdminUpsertLegalResource(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"id": id, "created": true})
 		return
 	}
-	_, err := a.DB.Exec(`UPDATE legal_resources SET title=?, excerpt=?, body=?, category=?, resource_type=?, source=?, published_date=?, is_featured=?, status=?, updated_at=? WHERE id=?`,
-		title, excerpt, content, category, rtype, source, pubDate, feat, status, now, id)
+	_, err := a.DB.Exec(`UPDATE legal_resources SET title=?, title_ru=?, title_en=?, excerpt=?, excerpt_ru=?, excerpt_en=?, body=?, body_ru=?, body_en=?, category=?, resource_type=?, source=?, published_date=?, is_featured=?, status=?, updated_at=? WHERE id=?`,
+		title, titleRu, titleEn, excerpt, excerptRu, excerptEn, content, bodyRu, bodyEn, category, rtype, source, pubDate, feat, status, now, id)
 	if err != nil {
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return

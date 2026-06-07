@@ -41,11 +41,11 @@ export default function CorporateMembershipPage() {
       <section className="py-16 bg-navy-light border-y border-border/50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { title: 'VIP katalog va brend', desc: 'Kompaniyangiz premium ko\'rinishda, xalqaro tarmoqda.' },
-              { title: 'Delegatsiya va B2B', desc: 'AQSh–O\'zbekiston bo\'yicha rasmiy uchrashuvlar va hamkorlik.' },
-              { title: 'Maxsus konsultatsiya', desc: 'Huquqiy, soliq va eksport-import bo\'yicha korporativ qo\'llab-quvvatlash.' },
-            ].map((item) => (
+            {([
+              { title: t('corpBenefit1Title'), desc: t('corpBenefit1Desc') },
+              { title: t('corpBenefit2Title'), desc: t('corpBenefit2Desc') },
+              { title: t('corpBenefit3Title'), desc: t('corpBenefit3Desc') },
+            ] as { title: string; desc: string }[]).map((item) => (
               <div key={item.title} className="glass-card border-ancient rounded-sm p-6 space-y-2 hover-gold-glow">
                 <div className="w-2 h-6 bg-primary rounded-sm" />
                 <h4 className="font-jiang-cheng text-foreground font-bold text-sm">{item.title}</h4>

@@ -32,5 +32,31 @@ func Open(path string) (*sql.DB, error) {
 	if _, err := conn.Exec(string(schema)); err != nil {
 		return nil, err
 	}
+	runMigrations(conn)
 	return conn, nil
+}
+
+func runMigrations(db *sql.DB) {
+	alters := []string{
+		`ALTER TABLE news_posts ADD COLUMN title_ru TEXT`,
+		`ALTER TABLE news_posts ADD COLUMN title_en TEXT`,
+		`ALTER TABLE news_posts ADD COLUMN excerpt_ru TEXT`,
+		`ALTER TABLE news_posts ADD COLUMN excerpt_en TEXT`,
+		`ALTER TABLE news_posts ADD COLUMN body_ru TEXT`,
+		`ALTER TABLE news_posts ADD COLUMN body_en TEXT`,
+		`ALTER TABLE events ADD COLUMN title_ru TEXT`,
+		`ALTER TABLE events ADD COLUMN title_en TEXT`,
+		`ALTER TABLE events ADD COLUMN description_ru TEXT`,
+		`ALTER TABLE events ADD COLUMN description_en TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN title_ru TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN title_en TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN excerpt_ru TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN excerpt_en TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN body_ru TEXT`,
+		`ALTER TABLE legal_resources ADD COLUMN body_en TEXT`,
+		`ALTER TABLE email_campaigns ADD COLUMN logo_url TEXT`,
+	}
+	for _, q := range alters {
+		db.Exec(q) //nolint: errcheck — duplicate column errors are expected on re-runs
+	}
 }

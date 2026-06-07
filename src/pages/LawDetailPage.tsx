@@ -16,6 +16,12 @@ import {
   jsonLdBundle,
 } from '@/config/seo';
 
+function lf(uz: string | null | undefined, ru: string | null | undefined, en: string | null | undefined, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 export default function LawDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t, lang } = useLang();
@@ -92,7 +98,7 @@ export default function LawDetailPage() {
                       {item.category}
                     </span>
                     <h1 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-                      {item.title}
+                      {lf(item.title, item.title_ru, item.title_en, lang)}
                     </h1>
                   </div>
                 </div>
@@ -111,7 +117,7 @@ export default function LawDetailPage() {
                 <div className="section-divider" />
 
                 <div>
-                  {item.body.split('\n\n').map((para, i) => (
+                  {lf(item.body, item.body_ru, item.body_en, lang).split('\n\n').map((para, i) => (
                     <p key={i} className="text-muted-foreground text-sm leading-relaxed mb-4 text-pretty">
                       {para}
                     </p>

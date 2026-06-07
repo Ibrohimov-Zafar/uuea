@@ -17,8 +17,14 @@ function SectionHeading({ subtitle, title, description }: { subtitle: string; ti
   );
 }
 
+function lf(uz: string, ru: string, en: string, lang: string): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || '';
+}
+
 export default function WhoWeArePage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   return (
     <Layout>
       {/* Hero */}
@@ -43,23 +49,23 @@ export default function WhoWeArePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-primary/30 bg-primary/5 text-primary text-xs tracking-widest uppercase">
-                Tashkilot Haqida
+                {t('aboutOrgBadge')}
               </div>
               <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-                20 Yillik Ishonch va Tajriba
+                {t('aboutOrgTitle')}
               </h2>
               <p className="text-muted-foreground leading-relaxed text-pretty">
-                USA–Uzbekistan Entrepreneurs Association (UUEA) — AQSh va O'zbekiston o'rtasida tadbirkorlar, investorlar va biznes vakillarini birlashtiruvchi rasmiy assotsiatsiya. Delegatsiyalar, tadbirlar va a'zolik orqali transatlantik hamkorlikni rivojlantiramiz.
+                {t('aboutOrgPara1')}
               </p>
               <p className="text-muted-foreground leading-relaxed text-pretty">
-                Assotsiatsiyamiz a'zolari mintaqadagi barcha asosiy sohalarda faoliyat yuritadi: IT va texnologiya, qurilish, sog'liqni saqlash, ta'lim, savdo va ko'plab boshqa sohalarda. Biz ularning ovozi va kuchi bo'lib xizmat qilamiz.
+                {t('aboutOrgPara2')}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { n: "2500+", l: "A'zo Biznes" },
-                  { n: "50+", l: "Yillik Tadbir" },
-                  { n: "15+", l: "Yil Tajriba" },
-                  { n: "10+", l: "Xalqaro Hamkor" },
+                  { n: "2500+", l: t('aboutStatMemberBiz') },
+                  { n: "50+",   l: t('aboutStatAnnualEvents') },
+                  { n: "15+",   l: t('aboutStatYearsExp') },
+                  { n: "10+",   l: t('aboutStatPartners') },
                 ].map((s) => (
                   <div key={s.l} className="glass-card border-ancient rounded-sm p-4 text-center">
                     <div className="font-jiang-cheng text-2xl font-bold text-gold-gradient">{s.n}</div>
@@ -81,23 +87,23 @@ export default function WhoWeArePage() {
       {/* Mission & Vision */}
       <section className="py-20 bg-navy-light border-y border-border/50">
         <div className="max-w-7xl mx-auto px-6">
-          <SectionHeading subtitle="Maqsadimiz" title="Missiya va Vizyon" />
+          <SectionHeading subtitle={t('missionBadge')} title={t('missionTitle')} />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 icon: <Target className="w-7 h-7" />,
-                title: "Missiyamiz",
-                text: "Bizneslarni kuchaytirish, tadbirkorlarni qo'llab-quvvatlash va mintaqa iqtisodiyotini rivojlantirishga xizmat qilish. A'zolarimiz uchun real natijalar yaratish.",
+                title: t('missionLabel'),
+                text: t('missionText'),
               },
               {
                 icon: <Eye className="w-7 h-7" />,
-                title: "Vizyonimiz",
-                text: "O'zbekistonning eng ta'sirli va ishonchli biznes assotsiatsiyasi bo'lish. Mintaqamizni investitsiya va biznes uchun qulay markazga aylantirish.",
+                title: t('visionLabel'),
+                text: t('visionText'),
               },
               {
                 icon: <Heart className="w-7 h-7" />,
-                title: "Qadriyatlarimiz",
-                text: "Halollik, shaffoflik, professionallik va innovatsiya. Har bir qarorimizda a'zolarimizning manfaati birinchi o'rinda turadi.",
+                title: t('valuesLabel'),
+                text: t('valuesText'),
               },
             ].map((item) => (
               <div key={item.title} className="glass-card border-ancient rounded-sm p-8 space-y-4 hover-gold-glow card-ancient">
@@ -115,7 +121,7 @@ export default function WhoWeArePage() {
       {/* Leadership */}
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">
-          <SectionHeading subtitle="Rahbariyat" title="Jamoa va Rahbarlar" description="Assotsiatsiyamizni boshqarayotgan tajribali va fidoyi professional jamoa." />
+          <SectionHeading subtitle={t('leadershipBadge')} title={t('leadershipTitle')} description={t('leadershipDesc')} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {teamMembers.map((member) => (
               <div key={member.id} className="glass-card border-ancient rounded-sm p-6 space-y-4 hover-gold-glow card-ancient">
@@ -142,7 +148,7 @@ export default function WhoWeArePage() {
       {/* Timeline */}
       <section className="py-20 bg-navy-light border-y border-border/50">
         <div className="max-w-4xl mx-auto px-6">
-          <SectionHeading subtitle="Tarix" title="Rivojlanish Yo'li" />
+          <SectionHeading subtitle={t('historyBadge')} title={t('historyTitle')} />
           <div className="relative">
             <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-primary/10 via-primary/40 to-primary/10" />
             <div className="space-y-10">
@@ -150,8 +156,8 @@ export default function WhoWeArePage() {
                 <div key={item.year} className={`flex items-center gap-8 ${i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
                   <div className={`flex-1 ${i % 2 === 0 ? 'text-right' : 'text-left'}`}>
                     <div className="glass-card border-ancient rounded-sm p-5 hover-gold-glow inline-block max-w-xs">
-                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm">{item.title}</h4>
-                      <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{item.description}</p>
+                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm">{lf(item.title, item.title_ru ?? '', item.title_en ?? '', lang)}</h4>
+                      <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{lf(item.description, item.description_ru ?? '', item.description_en ?? '', lang)}</p>
                     </div>
                   </div>
                   <div className="shrink-0 w-12 h-12 bg-primary/15 border-2 border-primary/50 rounded-sm flex items-center justify-center font-jiang-cheng text-primary text-xs font-bold z-10">
@@ -168,7 +174,7 @@ export default function WhoWeArePage() {
       {/* Partners */}
       <section className="py-20 bg-background bg-sacred-geometry">
         <div className="max-w-7xl mx-auto px-6">
-          <SectionHeading subtitle="Hamkorlar" title="Asosiy Hamkorlarimiz" />
+          <SectionHeading subtitle={t('partnersBadge')} title={t('partnersTitle')} />
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {partners.map((p) => (
               <div key={p.name} className="glass-card border-ancient rounded-sm h-14 flex items-center justify-center text-sm text-muted-foreground hover:text-primary hover:border-primary/40 transition-all font-semibold tracking-wide">
@@ -183,14 +189,14 @@ export default function WhoWeArePage() {
       <section className="py-16 bg-navy-dark border-t border-border/50">
         <div className="max-w-3xl mx-auto px-6 text-center space-y-6">
           <h2 className="font-jiang-cheng text-2xl md:text-3xl font-bold text-foreground text-balance">
-            Bizning Jamoaga Qo'shiling
+            {t('joinTeamTitle')}
           </h2>
           <p className="text-muted-foreground text-pretty leading-relaxed">
-            2500+ biznes bilan birga rivojlaning. A'zolik orqali kuchli tarmoqqa ega bo'ling.
+            {t('joinTeamDesc')}
           </p>
           <Link to="/qoshilish">
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 hover-gold-glow rounded-sm px-10">
-              A'zolikga Qo'shilish
+              {t('joinMembershipBtn')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>

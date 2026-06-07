@@ -48,6 +48,7 @@ import {
   adminCancelCampaign,
   adminMembershipsForUsers,
   adminListNews,
+  adminCreateNews,
   adminReviewNews,
   adminDeleteNews,
   getMembershipPlans,
@@ -1203,7 +1204,8 @@ function EventsSection({ canManage }: { canManage: boolean }) {
   const [showForm, setShowForm] = useState(false);
   const [editEv, setEditEv] = useState<Event | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', image_url: '', is_featured: false });
+  const [form, setForm] = useState({ title: '', title_ru: '', title_en: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', description_ru: '', description_en: '', image_url: '', is_featured: false });
+  const [evLangTab, setEvLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -1220,11 +1222,12 @@ function EventsSection({ canManage }: { canManage: boolean }) {
     !query || ev.title.toLowerCase().includes(query.toLowerCase()) || ev.location.toLowerCase().includes(query.toLowerCase())
   );
 
-  const resetForm = () => setForm({ title: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', image_url: '', is_featured: false });
-  const openAdd = () => { resetForm(); setEditEv(null); setShowForm(true); };
+  const resetForm = () => setForm({ title: '', title_ru: '', title_en: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', description_ru: '', description_en: '', image_url: '', is_featured: false });
+  const openAdd = () => { resetForm(); setEditEv(null); setEvLangTab('uz'); setShowForm(true); };
   const openEdit = (ev: Event) => {
     setEditEv(ev);
-    setForm({ title: ev.title, category: ev.category, location: ev.location, event_date: ev.event_date, event_time: ev.event_time || '', price_usd: String(ev.price_usd), spots_total: String(ev.spots_total), description: ev.description || '', image_url: ev.image_url || '', is_featured: ev.is_featured });
+    setForm({ title: ev.title, title_ru: ev.title_ru || '', title_en: ev.title_en || '', category: ev.category, location: ev.location, event_date: ev.event_date, event_time: ev.event_time || '', price_usd: String(ev.price_usd), spots_total: String(ev.spots_total), description: ev.description || '', description_ru: ev.description_ru || '', description_en: ev.description_en || '', image_url: ev.image_url || '', is_featured: ev.is_featured });
+    setEvLangTab('uz');
     setShowForm(true);
   };
 
@@ -1246,7 +1249,7 @@ function EventsSection({ canManage }: { canManage: boolean }) {
   const handleSave = async () => {
     if (!form.title.trim() || !form.event_date || !form.location.trim()) { toast.error('Sarlavha, sana va joylashuv majburiy'); return; }
     setSaving(true);
-    const payload = { title: form.title, category: form.category, location: form.location, event_date: form.event_date, event_time: form.event_time || null, price_usd: Number(form.price_usd) || 0, spots_total: Number(form.spots_total) || 100, description: form.description || null, image_url: form.image_url || null, is_featured: form.is_featured };
+    const payload = { title: form.title, title_ru: form.title_ru || null, title_en: form.title_en || null, category: form.category, location: form.location, event_date: form.event_date, event_time: form.event_time || null, price_usd: Number(form.price_usd) || 0, spots_total: Number(form.spots_total) || 100, description: form.description || null, description_ru: form.description_ru || null, description_en: form.description_en || null, image_url: form.image_url || null, is_featured: form.is_featured };
     try {
       await adminUpsertEvent({
         id: editEv?.id,
@@ -1339,14 +1342,59 @@ function EventsSection({ canManage }: { canManage: boolean }) {
             <DialogTitle className="font-jiang-cheng text-foreground">{editEv ? 'Tadbirni Tahrirlash' : "Yangi Tadbir Qo'shish"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[65vh] overflow-y-auto pr-1">
+            {/* Language tabs for translatable fields */}
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setEvLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', evLangTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+              <span className="text-[10px] text-muted-foreground/60 ml-2 self-center">{evLangTab === 'uz' ? '(asosiy)' : '(ixtiyoriy)'}</span>
+            </div>
+            {evLangTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Sarlavha *</Label>
+                  <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Tadbir nomi" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Tavsif</Label>
+                  <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Qisqa tavsif" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
+            {evLangTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Название (RU)</Label>
+                  <Input value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} placeholder="Название мероприятия" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Описание (RU)</Label>
+                  <Input value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} placeholder="Краткое описание" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
+            {evLangTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Title (EN)</Label>
+                  <Input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} placeholder="Event title" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Description (EN)</Label>
+                  <Input value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} placeholder="Short description" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
+            {/* Non-translatable fields always visible */}
             {([
-              { label: 'Sarlavha *', field: 'title', placeholder: 'Tadbir nomi' },
               { label: 'Joylashuv *', field: 'location', placeholder: 'Toshkent, ...' },
               { label: 'Sana *', field: 'event_date', placeholder: '', type: 'date' },
               { label: 'Vaqt', field: 'event_time', placeholder: '10:00', type: 'time' },
               { label: 'Narx ($)', field: 'price_usd', placeholder: '0', type: 'number' },
               { label: 'Joylar soni', field: 'spots_total', placeholder: '100', type: 'number' },
-              { label: 'Tavsif', field: 'description', placeholder: 'Qisqa tavsif' },
             ] as { label: string; field: keyof typeof form; placeholder: string; type?: string }[]).map(({ label, field, placeholder, type }) => (
               <div key={field} className="space-y-1.5">
                 <Label className="text-xs font-normal text-muted-foreground">{label}</Label>
@@ -2253,12 +2301,14 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
   const [selected, setSelected]         = useState<Campaign | null>(null);
 
   // Form state
-  const [subject, setSubject]     = useState('');
-  const [body, setBody]           = useState('');
-  const [schedDate, setSchedDate] = useState('');
-  const [schedTime, setSchedTime] = useState('');
-  const [targetSrc, setTargetSrc] = useState('all');
-  const [saving, setSaving]       = useState(false);
+  const [subject, setSubject]         = useState('');
+  const [body, setBody]               = useState('');
+  const [schedDate, setSchedDate]     = useState('');
+  const [schedTime, setSchedTime]     = useState('');
+  const [targetSrc, setTargetSrc]     = useState('all');
+  const [logoUrl, setLogoUrl]         = useState('');
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [saving, setSaving]           = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -2274,6 +2324,18 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
     return () => window.clearInterval(id);
   }, [load]);
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setLogoUrl(url);
+      toast.success('Logo yuklandi');
+    } catch { toast.error('Logoni yuklashda xatolik'); }
+    finally { setLogoUploading(false); }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !body.trim() || !schedDate || !schedTime) {
@@ -2286,6 +2348,7 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
       await adminCreateCampaign({
         subject: subject.trim(),
         body: body.trim(),
+        logo_url: logoUrl || undefined,
         scheduled_at: scheduledAt,
         target_source: targetSrc,
       });
@@ -2297,7 +2360,7 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
     setSaving(false);
     toast.success("Kampaniya rejalashtirildi");
     setShowForm(false);
-    setSubject(''); setBody(''); setSchedDate(''); setSchedTime(''); setTargetSrc('all');
+    setSubject(''); setBody(''); setSchedDate(''); setSchedTime(''); setTargetSrc('all'); setLogoUrl('');
     load();
   };
 
@@ -2407,6 +2470,20 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
               <textarea value={body} onChange={e => setBody(e.target.value)} rows={6} required
                 placeholder="Email mazmunini yozing..."
                 className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Logo (ixtiyoriy)</Label>
+              <label className={cn('flex items-center gap-2 px-3 py-2 border border-dashed border-border/60 rounded-sm cursor-pointer text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors', logoUploading && 'opacity-50 pointer-events-none')}>
+                <UploadCloud className="w-4 h-4 shrink-0" />
+                {logoUploading ? 'Yuklanmoqda...' : 'Logo tanlash (JPG, PNG)'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+              {logoUrl && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={logoUrl} alt="logo" className="h-12 object-contain rounded-sm border border-border/40" />
+                  <button type="button" onClick={() => setLogoUrl('')} className="text-xs text-destructive hover:underline">O&apos;chirish</button>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="ghost" onClick={() => setShowForm(false)}
@@ -2580,6 +2657,12 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
 function NewsAdminSection({ canManage }: { canManage: boolean }) {
   const [items, setItems] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newsLangTab, setNewsLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const emptyNews = () => ({ title: '', title_ru: '', title_en: '', excerpt: '', excerpt_ru: '', excerpt_en: '', body: '', body_ru: '', body_en: '', category: 'Boshqa', image_url: '' });
+  const [newsForm, setNewsForm] = useState(emptyNews());
+  const [newsSaving, setNewsSaving] = useState(false);
+  const [newsUploading, setNewsUploading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -2594,6 +2677,44 @@ function NewsAdminSection({ canManage }: { canManage: boolean }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleCreateNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsForm.title.trim() || !newsForm.body.trim()) { toast.error("Sarlavha va matn majburiy"); return; }
+    setNewsSaving(true);
+    try {
+      await adminCreateNews({
+        title: newsForm.title.trim(),
+        title_ru: newsForm.title_ru.trim() || undefined,
+        title_en: newsForm.title_en.trim() || undefined,
+        excerpt: newsForm.excerpt.trim() || undefined,
+        excerpt_ru: newsForm.excerpt_ru.trim() || undefined,
+        excerpt_en: newsForm.excerpt_en.trim() || undefined,
+        body: newsForm.body.trim(),
+        body_ru: newsForm.body_ru.trim() || undefined,
+        body_en: newsForm.body_en.trim() || undefined,
+        category: newsForm.category,
+        image_url: newsForm.image_url || undefined,
+      });
+      toast.success("Yangilik qo'shildi");
+      setShowCreate(false);
+      setNewsForm(emptyNews());
+      load();
+    } catch { toast.error("Xatolik yuz berdi"); }
+    finally { setNewsSaving(false); }
+  };
+
+  const handleNewsImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setNewsUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setNewsForm(f => ({ ...f, image_url: url }));
+      toast.success('Rasm yuklandi');
+    } catch { toast.error('Rasmni yuklashda xatolik'); }
+    finally { setNewsUploading(false); }
+  };
 
   const review = async (id: string, status: 'approved' | 'rejected') => {
     try {
@@ -2623,10 +2744,124 @@ function NewsAdminSection({ canManage }: { canManage: boolean }) {
         <div className="text-sm text-muted-foreground">
           Jami: <span className="text-foreground font-semibold">{items.length}</span>
         </div>
-        <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground hover:text-foreground rounded-sm">
-          <RefreshCw className="w-4 h-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={load} variant="ghost" size="sm" className="border border-border/40 text-muted-foreground hover:text-foreground rounded-sm">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          {canManage && (
+            <Button onClick={() => { setNewsForm(emptyNews()); setNewsLangTab('uz'); setShowCreate(true); }} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-1.5 text-xs">
+              <Plus className="w-3.5 h-3.5" />Yangilik qo&apos;shish
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Create news dialog */}
+      <Dialog open={showCreate} onOpenChange={o => !o && setShowCreate(false)}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg bg-navy border-ancient rounded-sm">
+          <DialogHeader>
+            <DialogTitle className="font-jiang-cheng text-foreground">Yangilik Qo&apos;shish</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[65vh] overflow-y-auto pr-1">
+            {/* Language tabs */}
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setNewsLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', newsLangTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+              <span className="text-[10px] text-muted-foreground/60 ml-2 self-center">{newsLangTab === 'uz' ? '(asosiy)' : '(ixtiyoriy)'}</span>
+            </div>
+            {newsLangTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Sarlavha *</Label>
+                  <Input value={newsForm.title} onChange={e => setNewsForm(f => ({ ...f, title: e.target.value }))} placeholder="Yangilik sarlavhasi" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Qisqa tavsif</Label>
+                  <Input value={newsForm.excerpt} onChange={e => setNewsForm(f => ({ ...f, excerpt: e.target.value }))} placeholder="Qisqa mazmun" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">To&apos;liq matn *</Label>
+                  <textarea value={newsForm.body} onChange={e => setNewsForm(f => ({ ...f, body: e.target.value }))} rows={6} placeholder="Yangilik matni..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {newsLangTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Заголовок (RU)</Label>
+                  <Input value={newsForm.title_ru} onChange={e => setNewsForm(f => ({ ...f, title_ru: e.target.value }))} placeholder="Заголовок новости" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Краткое описание (RU)</Label>
+                  <Input value={newsForm.excerpt_ru} onChange={e => setNewsForm(f => ({ ...f, excerpt_ru: e.target.value }))} placeholder="Краткое содержание" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Полный текст (RU)</Label>
+                  <textarea value={newsForm.body_ru} onChange={e => setNewsForm(f => ({ ...f, body_ru: e.target.value }))} rows={6} placeholder="Текст новости..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {newsLangTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Title (EN)</Label>
+                  <Input value={newsForm.title_en} onChange={e => setNewsForm(f => ({ ...f, title_en: e.target.value }))} placeholder="News headline" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Excerpt (EN)</Label>
+                  <Input value={newsForm.excerpt_en} onChange={e => setNewsForm(f => ({ ...f, excerpt_en: e.target.value }))} placeholder="Short summary" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Full text (EN)</Label>
+                  <textarea value={newsForm.body_en} onChange={e => setNewsForm(f => ({ ...f, body_en: e.target.value }))} rows={6} placeholder="News content..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {/* Common fields */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Kategoriya</Label>
+              <Select value={newsForm.category} onValueChange={v => setNewsForm(f => ({ ...f, category: v }))}>
+                <SelectTrigger className="bg-background/60 border-border/60 rounded-sm text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {['Boshqa', 'Iqtisodiyot', 'Hamkorlik', 'Savdo', 'Tadbirlar', 'Moliya', 'Startaplar'].map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Rasm (ixtiyoriy)</Label>
+              <label className={cn('flex items-center gap-2 px-3 py-2 border border-dashed border-border/60 rounded-sm cursor-pointer text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors', newsUploading && 'opacity-50 pointer-events-none')}>
+                <UploadCloud className="w-4 h-4 shrink-0" />
+                {newsUploading ? 'Yuklanmoqda...' : 'Rasm tanlash'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleNewsImageUpload} />
+              </label>
+              {newsForm.image_url && (
+                <div className="relative rounded-sm overflow-hidden border border-border/40 aspect-[16/6]">
+                  <img src={newsForm.image_url} alt="preview" className="w-full h-full object-cover" />
+                  <button type="button" onClick={() => setNewsForm(f => ({ ...f, image_url: '' }))}
+                    className="absolute top-2 right-2 w-6 h-6 bg-destructive/80 text-white rounded-sm flex items-center justify-center text-xs hover:bg-destructive">✕</button>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowCreate(false)} className="border border-border/40 text-muted-foreground rounded-sm">Bekor</Button>
+            <Button onClick={handleCreateNews} disabled={newsSaving} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm">
+              {newsSaving ? 'Saqlanmoqda...' : <span className="flex items-center gap-2"><Save className="w-3.5 h-3.5" />Saqlash</span>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {(items ?? []).length === 0 ? (
         <div className="glass-card border-ancient rounded-sm p-10 text-center card-ancient space-y-2">

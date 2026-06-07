@@ -35,8 +35,14 @@ const TYPES = [
 
 const emptyForm = (): LegalResourcePayload => ({
   title: '',
+  title_ru: '',
+  title_en: '',
   excerpt: '',
+  excerpt_ru: '',
+  excerpt_en: '',
   body: '',
+  body_ru: '',
+  body_en: '',
   category: 'Qonunlar',
   resource_type: 'law',
   source: 'UUEA',
@@ -52,6 +58,7 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<LegalResourcePayload>(emptyForm());
+  const [langTab, setLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,6 +75,7 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
 
   const openCreate = () => {
     setForm(emptyForm());
+    setLangTab('uz');
     setDialogOpen(true);
   };
 
@@ -75,8 +83,14 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
     setForm({
       id: item.id,
       title: item.title,
+      title_ru: item.title_ru || '',
+      title_en: item.title_en || '',
       excerpt: item.excerpt,
+      excerpt_ru: item.excerpt_ru || '',
+      excerpt_en: item.excerpt_en || '',
       body: item.body,
+      body_ru: item.body_ru || '',
+      body_en: item.body_en || '',
       category: item.category,
       resource_type: item.resource_type,
       source: item.source,
@@ -84,6 +98,7 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
       is_featured: Boolean(item.is_featured),
       status: item.status === 'draft' ? 'draft' : 'published',
     });
+    setLangTab('uz');
     setDialogOpen(true);
   };
 
@@ -210,14 +225,69 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
             <DialogTitle>{form.id ? 'Tahrirlash' : 'Yangi material'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Sarlavha *</Label>
-              <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="rounded-sm text-sm" />
+            {/* Language tabs */}
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', langTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+              <span className="text-[10px] text-muted-foreground/60 ml-2 self-center">{langTab === 'uz' ? '(majburiy)' : '(ixtiyoriy)'}</span>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Qisqa tavsif *</Label>
-              <Input value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} className="rounded-sm text-sm" />
-            </div>
+
+            {langTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Sarlavha *</Label>
+                  <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Qisqa tavsif *</Label>
+                  <Input value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">To&apos;liq matn *</Label>
+                  <textarea value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} rows={6}
+                    className="w-full px-3 py-2 bg-background/60 border border-border/60 rounded-sm text-sm resize-y min-h-[120px]" />
+                </div>
+              </>
+            )}
+            {langTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Заголовок (RU)</Label>
+                  <Input value={form.title_ru || ''} onChange={(e) => setForm((f) => ({ ...f, title_ru: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Краткое описание (RU)</Label>
+                  <Input value={form.excerpt_ru || ''} onChange={(e) => setForm((f) => ({ ...f, excerpt_ru: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Полный текст (RU)</Label>
+                  <textarea value={form.body_ru || ''} onChange={(e) => setForm((f) => ({ ...f, body_ru: e.target.value }))} rows={6}
+                    className="w-full px-3 py-2 bg-background/60 border border-border/60 rounded-sm text-sm resize-y min-h-[120px]" />
+                </div>
+              </>
+            )}
+            {langTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Title (EN)</Label>
+                  <Input value={form.title_en || ''} onChange={(e) => setForm((f) => ({ ...f, title_en: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Excerpt (EN)</Label>
+                  <Input value={form.excerpt_en || ''} onChange={(e) => setForm((f) => ({ ...f, excerpt_en: e.target.value }))} className="rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Full text (EN)</Label>
+                  <textarea value={form.body_en || ''} onChange={(e) => setForm((f) => ({ ...f, body_en: e.target.value }))} rows={6}
+                    className="w-full px-3 py-2 bg-background/60 border border-border/60 rounded-sm text-sm resize-y min-h-[120px]" />
+                </div>
+              </>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Kategoriya</Label>
@@ -269,15 +339,6 @@ export default function LegalAdminSection({ canManage }: { canManage: boolean })
                   <SelectItem value="draft">draft</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">To&apos;liq matn *</Label>
-              <textarea
-                value={form.body}
-                onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-                rows={8}
-                className="w-full px-3 py-2 bg-background/60 border border-border/60 rounded-sm text-sm resize-y min-h-[120px]"
-              />
             </div>
           </div>
           <DialogFooter>

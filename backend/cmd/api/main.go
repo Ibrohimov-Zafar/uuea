@@ -152,6 +152,7 @@ func main() {
 		ar.Get("/admin/memberships", api.AdminMembershipsForUsers)
 
 		// Yangiliklar boshqaruvi
+		ar.Post("/admin/news", api.AdminCreateNews)
 		ar.Post("/admin/news/review", api.AdminReviewNews)
 		ar.Delete("/admin/news", api.AdminDeleteNews)
 

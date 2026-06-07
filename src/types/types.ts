@@ -66,8 +66,14 @@ export type LegalResourceType = 'law' | 'decree' | 'business_news' | 'legal_info
 export interface LegalResource {
   id: string;
   title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
   excerpt: string;
+  excerpt_ru?: string | null;
+  excerpt_en?: string | null;
   body: string;
+  body_ru?: string | null;
+  body_en?: string | null;
   category: string;
   resource_type: LegalResourceType;
   source: string;
@@ -82,8 +88,14 @@ export interface NewsPost {
   id: string;
   author_id: string | null;
   title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
   excerpt: string | null;
+  excerpt_ru?: string | null;
+  excerpt_en?: string | null;
   body: string;
+  body_ru?: string | null;
+  body_en?: string | null;
   category: string;
   image_url: string | null;
   status: NewsStatus;
@@ -150,7 +162,11 @@ export interface Business {
 export interface Event {
   id: string;
   title: string;
+  title_ru?: string | null;
+  title_en?: string | null;
   description: string | null;
+  description_ru?: string | null;
+  description_en?: string | null;
   category: string;
   location: string;
   event_date: string;
