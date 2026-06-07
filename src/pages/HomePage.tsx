@@ -426,7 +426,7 @@ function useCarouselVisible() {
 function EventCard({ ev, registerLabel, freeLabel }: { ev: HomeEvent; registerLabel: string; freeLabel: string }) {
   const price = ev.price_usd === 0 ? freeLabel : `$${ev.price_usd}`;
   return (
-    <div className="glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group flex flex-col h-full">
+    <Link to={`/tadbirlar/${ev.id}`} className="glass-card border-ancient rounded-sm overflow-hidden hover-gold-glow group flex flex-col h-full block transition-colors cursor-pointer">
       <div className="aspect-[16/9] bg-muted relative overflow-hidden shrink-0">
         {ev.image_url
           ? <img src={ev.image_url} alt={ev.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
@@ -441,23 +441,19 @@ function EventCard({ ev, registerLabel, freeLabel }: { ev: HomeEvent; registerLa
       </div>
       <div className="p-4 sm:p-5 space-y-2 sm:space-y-3 flex flex-col flex-1">
         <div className="text-primary text-xs tracking-wider">{ev.event_date} — {ev.event_time}</div>
-        <h3 className="font-jiang-cheng text-foreground font-bold text-base sm:text-sm leading-snug text-balance">{ev.title}</h3>
+        <h3 className="font-jiang-cheng text-foreground font-bold text-base sm:text-sm leading-snug text-balance group-hover:text-primary transition-colors">{ev.title}</h3>
         <p className="text-muted-foreground text-sm sm:text-xs leading-relaxed text-pretty line-clamp-3 sm:line-clamp-2 flex-1">{ev.description}</p>
         <div className="text-xs text-muted-foreground flex items-start gap-1.5">
           <span className="w-1 h-1 bg-primary rounded-full shrink-0 mt-1.5" />
           <span className="min-w-0">{ev.location}</span>
         </div>
-        <Link to={`/tadbirlar/${ev.id}`} className="block pt-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="w-full h-10 sm:h-9 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/30 hover:border-primary rounded-sm text-sm sm:text-xs transition-all"
-          >
+        <div className="pt-1">
+          <span className="flex w-full h-10 sm:h-9 items-center justify-center bg-primary/10 group-hover:bg-primary text-primary group-hover:text-primary-foreground border border-primary/30 group-hover:border-primary rounded-sm text-sm sm:text-xs transition-all">
             {registerLabel}
-          </Button>
-        </Link>
+          </span>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -575,7 +571,11 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
             const category = localizedField(biz.category, biz.category_ru, biz.category_en, lang);
             const description = localizedField(biz.description, biz.description_ru, biz.description_en, lang);
             return (
-            <div key={biz.id} className="glass-card border-ancient rounded-sm p-5 space-y-3 hover-gold-glow relative group">
+            <Link
+              key={biz.id}
+              to={`/katalog/${biz.id}`}
+              className="glass-card border-ancient rounded-sm p-5 space-y-3 hover-gold-glow relative group block transition-colors cursor-pointer"
+            >
               {biz.is_vip && (
                 <div className="absolute top-3 right-3 vip-badge">VIP</div>
               )}
@@ -586,11 +586,11 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
                 }
               </div>
               <div>
-                <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance">{name}</h4>
+                <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance group-hover:text-primary transition-colors">{name}</h4>
                 <div className="text-primary text-xs mt-0.5">{category}</div>
               </div>
               <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-2">{description}</p>
-            </div>
+            </Link>
           );})}
         </div>
         {filtered.length === 0 && (

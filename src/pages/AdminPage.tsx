@@ -1304,7 +1304,6 @@ function EventsSection({ canManage }: { canManage: boolean }) {
   const [form, setForm] = useState({ title: '', title_ru: '', title_en: '', category: 'Forum', location: '', event_date: '', event_time: '', price_usd: '0', spots_total: '100', description: '', description_ru: '', description_en: '', image_url: '', is_featured: false });
   const [evLangTab, setEvLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1326,21 +1325,6 @@ function EventsSection({ canManage }: { canManage: boolean }) {
     setForm({ title: ev.title, title_ru: ev.title_ru || '', title_en: ev.title_en || '', category: ev.category, location: ev.location, event_date: ev.event_date, event_time: ev.event_time || '', price_usd: String(ev.price_usd), spots_total: String(ev.spots_total), description: ev.description || '', description_ru: ev.description_ru || '', description_en: ev.description_en || '', image_url: ev.image_url || '', is_featured: ev.is_featured });
     setEvLangTab('uz');
     setShowForm(true);
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadFile(file);
-      setForm(f => ({ ...f, image_url: url }));
-      toast.success('Rasm yuklandi');
-    } catch {
-      toast.error('Rasmni yuklashda xatolik');
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleSave = async () => {
@@ -1517,29 +1501,25 @@ function EventsSection({ canManage }: { canManage: boolean }) {
                 </SelectContent>
               </Select>
             </div>
-            {/* Image upload — optional */}
+            {/* Event image via URL — optional */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-normal text-muted-foreground">Rasm (ixtiyoriy)</Label>
-              <div className="space-y-2">
-                <label className={cn(
-                  'flex items-center gap-2 px-3 py-2 border border-dashed border-border/60 rounded-sm cursor-pointer text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors',
-                  uploading && 'opacity-50 pointer-events-none'
-                )}>
-                  <UploadCloud className="w-4 h-4 shrink-0" />
-                  {uploading ? 'Yuklanmoqda...' : 'Rasm tanlash (JPG, PNG, WebP)'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                </label>
-                {form.image_url && (
-                  <div className="relative rounded-sm overflow-hidden border border-border/40 aspect-[16/6]">
-                    <img src={form.image_url} alt="preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, image_url: '' }))}
-                      className="absolute top-2 right-2 w-6 h-6 bg-destructive/80 text-white rounded-sm flex items-center justify-center text-xs hover:bg-destructive"
-                    >✕</button>
-                  </div>
-                )}
-              </div>
+              <Label className="text-xs font-normal text-muted-foreground">Rasm havolasi (ixtiyoriy)</Label>
+              <Input
+                value={form.image_url}
+                onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
+                placeholder="https://example.com/event.jpg"
+                className="bg-background/60 border-border/60 rounded-sm text-sm"
+              />
+              {form.image_url && (
+                <div className="relative rounded-sm overflow-hidden border border-border/40 aspect-[16/6]">
+                  <img src={form.image_url} alt="preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, image_url: '' }))}
+                    className="absolute top-2 right-2 w-6 h-6 bg-destructive/80 text-white rounded-sm flex items-center justify-center text-xs hover:bg-destructive"
+                  >✕</button>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="is_featured" checked={form.is_featured} onChange={e => setForm(f => ({ ...f, is_featured: e.target.checked }))} />

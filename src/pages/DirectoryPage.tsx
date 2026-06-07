@@ -315,8 +315,11 @@ export default function DirectoryPage() {
                 const category = localizedField(biz.category, biz.category_ru, biz.category_en, lang);
                 const description = localizedField(biz.description, biz.description_ru, biz.description_en, lang);
                 return (
-                <div key={biz.id}
-                  className="glass-card border-ancient rounded-sm p-5 space-y-4 hover-gold-glow relative group card-ancient flex flex-col h-full">
+                <Link
+                  key={biz.id}
+                  to={`/katalog/${biz.id}`}
+                  className="glass-card border-ancient rounded-sm p-5 space-y-4 hover-gold-glow relative group card-ancient flex flex-col h-full block transition-colors cursor-pointer"
+                >
                   {biz.is_vip && (
                     <div className="absolute top-3 right-3 vip-badge">VIP</div>
                   )}
@@ -327,7 +330,7 @@ export default function DirectoryPage() {
                         : name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm truncate">{name}</h4>
+                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm truncate group-hover:text-primary transition-colors">{name}</h4>
                       <div className="text-primary text-xs mt-0.5">{category}</div>
                     </div>
                   </div>
@@ -354,14 +357,11 @@ export default function DirectoryPage() {
                       </div>
                     )}
                   </div>
-                  <Button size="sm" variant="ghost" asChild
-                    className="w-full border border-primary/30 text-primary hover:bg-primary/10 rounded-sm text-xs mt-auto">
-                    <Link to={`/katalog/${biz.id}`}>
-                      Batafsil Ko'rish
-                      <ExternalLink className="w-3 h-3 ml-1.5" />
-                    </Link>
-                  </Button>
-                </div>
+                  <span className="flex items-center justify-center w-full border border-primary/30 text-primary group-hover:bg-primary/10 rounded-sm text-xs mt-auto py-2">
+                    Batafsil Ko'rish
+                    <ExternalLink className="w-3 h-3 ml-1.5" />
+                  </span>
+                </Link>
               );})}
             </div>
           ) : (
