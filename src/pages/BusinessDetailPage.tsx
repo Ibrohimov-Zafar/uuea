@@ -14,6 +14,7 @@ import {
   jsonLdBundle,
 } from '@/config/seo';
 import { useLang } from '@/contexts/LangContext';
+import { localizedField } from '@/i18n/locale';
 
 export default function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,15 +43,19 @@ export default function BusinessDetailPage() {
     ? (biz.website.startsWith('http') ? biz.website : `https://${biz.website}`)
     : null;
 
+  const displayName = biz ? localizedField(biz.name, biz.name_ru, biz.name_en, lang) : '';
+  const displayCategory = biz ? localizedField(biz.category, biz.category_ru, biz.category_en, lang) : '';
+  const displayDescription = biz ? localizedField(biz.description, biz.description_ru, biz.description_en, lang) : '';
+  const seoDesc = displayDescription || `${displayName} — UUEA biznes katalogi`;
+
   const seoPath = id ? `/katalog/${id}` : '/katalog';
-  const seoDesc = biz?.description || `${biz?.name} — UUEA biznes katalogi`;
   const origin = getSiteOrigin();
 
   return (
     <Layout>
       {biz && (
         <PageSeo
-          title={biz.name}
+          title={displayName}
           description={seoDesc}
           path={seoPath}
           image={biz.logo_url || undefined}
@@ -58,14 +63,14 @@ export default function BusinessDetailPage() {
             {
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
-              name: biz.name,
-              description: biz.description,
+              name: displayName,
+              description: displayDescription || biz.description,
               url: websiteUrl || `${origin}${seoPath}`,
               telephone: biz.phone,
               email: biz.email,
               address: biz.address,
             },
-            buildBreadcrumbJsonLd(origin, lang, buildDetailBreadcrumbs('katalog', lang, biz.name, seoPath)),
+            buildBreadcrumbJsonLd(origin, lang, buildDetailBreadcrumbs('katalog', lang, displayName, seoPath)),
           )}
         />
       )}
@@ -85,24 +90,26 @@ export default function BusinessDetailPage() {
           ) : (
             <div className="glass-card border-ancient rounded-sm overflow-hidden card-ancient">
               <div className="bg-primary/10 border-b border-ancient px-6 py-5 flex items-start gap-4">
-                <div className="w-16 h-16 bg-primary/15 border border-primary/30 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-2xl shrink-0">
-                  {biz.name.slice(0, 2).toUpperCase()}
+                <div className="w-16 h-16 bg-primary/15 border border-primary/30 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-2xl shrink-0 overflow-hidden">
+                  {biz.logo_url
+                    ? <img src={biz.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                    : displayName.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="font-jiang-cheng text-foreground text-2xl font-bold">{biz.name}</h1>
+                    <h1 className="font-jiang-cheng text-foreground text-2xl font-bold">{displayName}</h1>
                     {biz.is_vip && <span className="vip-badge">VIP</span>}
                   </div>
-                  <p className="text-primary text-sm mt-1">{biz.category}</p>
+                  <p className="text-primary text-sm mt-1">{displayCategory}</p>
                   {biz.region && <p className="text-muted-foreground text-xs mt-0.5">{biz.region}</p>}
                 </div>
               </div>
 
               <div className="p-6 space-y-6">
-                {biz.description && (
+                {displayDescription && (
                   <div>
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('description')}</h2>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{biz.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{displayDescription}</p>
                   </div>
                 )}
 

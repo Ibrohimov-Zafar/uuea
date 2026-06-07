@@ -1031,7 +1031,8 @@ function SavedCardsSection({ userId }: { userId: string }) {
 
 // ─── Campaign types ──────────────────────────────────────────────────────────
 type Campaign = {
-  id: string; subject: string; body: string;
+  id: string; subject: string; subject_ru?: string | null; subject_en?: string | null;
+  body: string; body_ru?: string | null; body_en?: string | null; logo_url?: string | null;
   scheduled_at: string; status: 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled';
   target_source: string; sent_count: number; fail_count: number; created_at: string;
   open_count?: number; click_count?: number;
@@ -1058,10 +1059,16 @@ function CampaignsDashSection() {
   const [cancelling, setCancelling] = useState(false);
   const [selected, setSelected]   = useState<Campaign | null>(null);
   const [subject, setSubject]     = useState('');
+  const [subjectRu, setSubjectRu] = useState('');
+  const [subjectEn, setSubjectEn] = useState('');
   const [body, setBody]           = useState('');
+  const [bodyRu, setBodyRu]       = useState('');
+  const [bodyEn, setBodyEn]       = useState('');
+  const [campLangTab, setCampLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
   const [schedDate, setSchedDate] = useState('');
   const [schedTime, setSchedTime] = useState('');
   const [targetSrc, setTargetSrc] = useState('all');
+  const [logoUrl, setLogoUrl]     = useState('');
   const [saving, setSaving]       = useState(false);
 
   const load = useCallback(async () => {
@@ -1082,6 +1089,13 @@ function CampaignsDashSection() {
     return () => window.clearInterval(id);
   }, [load]);
 
+  const resetCampForm = () => {
+    setSubject(''); setSubjectRu(''); setSubjectEn('');
+    setBody(''); setBodyRu(''); setBodyEn('');
+    setSchedDate(''); setSchedTime(''); setTargetSrc('all'); setLogoUrl('');
+    setCampLangTab('uz');
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !body.trim() || !schedDate || !schedTime) {
@@ -1090,13 +1104,19 @@ function CampaignsDashSection() {
     setSaving(true);
     try {
       await adminCreateCampaign({
-        subject: subject.trim(), body: body.trim(),
+        subject: subject.trim(),
+        subject_ru: subjectRu.trim() || undefined,
+        subject_en: subjectEn.trim() || undefined,
+        body: body.trim(),
+        body_ru: bodyRu.trim() || undefined,
+        body_en: bodyEn.trim() || undefined,
+        logo_url: logoUrl.trim() || undefined,
         scheduled_at: new Date(`${schedDate}T${schedTime}`).toISOString(),
         target_source: targetSrc,
       });
       toast.success('Kampaniya rejalashtirildi');
       setShowForm(false);
-      setSubject(''); setBody(''); setSchedDate(''); setSchedTime(''); setTargetSrc('all');
+      resetCampForm();
       load();
     } catch {
       toast.error('Xatolik yuz berdi');
@@ -1154,7 +1174,7 @@ function CampaignsDashSection() {
             className="border border-border/40 text-muted-foreground rounded-sm w-8 h-8 p-0">
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
-          <Button onClick={() => setShowForm(v => !v)}
+          <Button onClick={() => { resetCampForm(); setShowForm(v => !v); }}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm text-sm gap-1.5 h-8 px-3">
             <CalendarClock className="w-3.5 h-3.5" />
             Yangi Kampaniya
@@ -1171,12 +1191,62 @@ function CampaignsDashSection() {
           </h3>
           <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
           <form onSubmit={handleCreate} className="space-y-3">
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Email mavzusi *</Label>
-              <Input value={subject} onChange={e => setSubject(e.target.value)}
-                placeholder="masalan: Iyun oyidagi yangiliklar..." required
-                className="bg-background/60 border-border/60 rounded-sm text-sm" />
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setCampLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', campLangTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
             </div>
+            {campLangTab === 'uz' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email mavzusi *</Label>
+                  <Input value={subject} onChange={e => setSubject(e.target.value)}
+                    placeholder="masalan: Iyun oyidagi yangiliklar..." required
+                    className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email matni *</Label>
+                  <textarea value={body} onChange={e => setBody(e.target.value)} rows={5} required
+                    placeholder="Email mazmunini yozing..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {campLangTab === 'ru' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Тема письма (RU)</Label>
+                  <Input value={subjectRu} onChange={e => setSubjectRu(e.target.value)}
+                    placeholder="например: Новости за июнь..."
+                    className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Текст письма (RU)</Label>
+                  <textarea value={bodyRu} onChange={e => setBodyRu(e.target.value)} rows={5}
+                    placeholder="Введите текст письма..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {campLangTab === 'en' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email subject (EN)</Label>
+                  <Input value={subjectEn} onChange={e => setSubjectEn(e.target.value)}
+                    placeholder="e.g. June newsletter..."
+                    className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email body (EN)</Label>
+                  <textarea value={bodyEn} onChange={e => setBodyEn(e.target.value)} rows={5}
+                    placeholder="Write email content..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Yuborish sanasi *</Label>
@@ -1200,10 +1270,16 @@ function CampaignsDashSection() {
               </select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Email matni *</Label>
-              <textarea value={body} onChange={e => setBody(e.target.value)} rows={5} required
-                placeholder="Email mazmunini yozing..."
-                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+              <Label className="text-xs text-muted-foreground mb-1 block">Logo havolasi (ixtiyoriy)</Label>
+              <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)}
+                placeholder="https://example.com/logo.png"
+                className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              {logoUrl && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={logoUrl} alt="logo" className="h-12 w-12 object-contain rounded-sm border border-border/40 bg-background/40" />
+                  <button type="button" onClick={() => setLogoUrl('')} className="text-xs text-destructive hover:underline">O&apos;chirish</button>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="ghost" onClick={() => setShowForm(false)}

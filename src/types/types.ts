@@ -143,8 +143,14 @@ export interface Business {
   id: string;
   owner_id: string | null;
   name: string;
+  name_ru?: string | null;
+  name_en?: string | null;
   category: string;
+  category_ru?: string | null;
+  category_en?: string | null;
   description: string | null;
+  description_ru?: string | null;
+  description_en?: string | null;
   website: string | null;
   phone: string | null;
   email: string | null;

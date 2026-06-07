@@ -55,6 +55,16 @@ func runMigrations(db *sql.DB) {
 		`ALTER TABLE legal_resources ADD COLUMN body_ru TEXT`,
 		`ALTER TABLE legal_resources ADD COLUMN body_en TEXT`,
 		`ALTER TABLE email_campaigns ADD COLUMN logo_url TEXT`,
+		`ALTER TABLE businesses ADD COLUMN name_ru TEXT`,
+		`ALTER TABLE businesses ADD COLUMN name_en TEXT`,
+		`ALTER TABLE businesses ADD COLUMN category_ru TEXT`,
+		`ALTER TABLE businesses ADD COLUMN category_en TEXT`,
+		`ALTER TABLE businesses ADD COLUMN description_ru TEXT`,
+		`ALTER TABLE businesses ADD COLUMN description_en TEXT`,
+		`ALTER TABLE email_campaigns ADD COLUMN subject_ru TEXT`,
+		`ALTER TABLE email_campaigns ADD COLUMN subject_en TEXT`,
+		`ALTER TABLE email_campaigns ADD COLUMN body_ru TEXT`,
+		`ALTER TABLE email_campaigns ADD COLUMN body_en TEXT`,
 	}
 	for _, q := range alters {
 		db.Exec(q) //nolint: errcheck — duplicate column errors are expected on re-runs

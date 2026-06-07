@@ -862,7 +862,14 @@ function BusinessesSection({ canManage }: { canManage: boolean }) {
   const [showForm, setShowForm] = useState(false);
   const [editBiz, setEditBiz] = useState<Business | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', category: '', description: '', website: '', phone: '', email: '', is_vip: false, latitude: '', longitude: '' });
+  const [bizLangTab, setBizLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const [form, setForm] = useState({
+    name: '', name_ru: '', name_en: '',
+    category: '', category_ru: '', category_en: '',
+    description: '', description_ru: '', description_en: '',
+    website: '', phone: '', email: '', logo_url: '',
+    is_vip: false, latitude: '', longitude: '',
+  });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -878,11 +885,24 @@ function BusinessesSection({ canManage }: { canManage: boolean }) {
     !query || b.name.toLowerCase().includes(query.toLowerCase()) || b.category.toLowerCase().includes(query.toLowerCase())
   );
 
-  const resetForm = () => setForm({ name: '', category: '', description: '', website: '', phone: '', email: '', is_vip: false, latitude: '', longitude: '' });
-  const openAdd = () => { resetForm(); setEditBiz(null); setShowForm(true); };
+  const resetForm = () => setForm({
+    name: '', name_ru: '', name_en: '',
+    category: '', category_ru: '', category_en: '',
+    description: '', description_ru: '', description_en: '',
+    website: '', phone: '', email: '', logo_url: '',
+    is_vip: false, latitude: '', longitude: '',
+  });
+  const openAdd = () => { resetForm(); setEditBiz(null); setBizLangTab('uz'); setShowForm(true); };
   const openEdit = (b: Business) => {
     setEditBiz(b);
-    setForm({ name: b.name, category: b.category, description: b.description || '', website: b.website || '', phone: b.phone || '', email: b.email || '', is_vip: b.is_vip, latitude: b.latitude != null ? String(b.latitude) : '', longitude: b.longitude != null ? String(b.longitude) : '' });
+    setForm({
+      name: b.name, name_ru: b.name_ru || '', name_en: b.name_en || '',
+      category: b.category, category_ru: b.category_ru || '', category_en: b.category_en || '',
+      description: b.description || '', description_ru: b.description_ru || '', description_en: b.description_en || '',
+      website: b.website || '', phone: b.phone || '', email: b.email || '', logo_url: b.logo_url || '',
+      is_vip: b.is_vip, latitude: b.latitude != null ? String(b.latitude) : '', longitude: b.longitude != null ? String(b.longitude) : '',
+    });
+    setBizLangTab('uz');
     setShowForm(true);
   };
 
@@ -892,7 +912,20 @@ function BusinessesSection({ canManage }: { canManage: boolean }) {
     try {
       await adminUpsertBusiness({
         id: editBiz?.id,
-        ...form,
+        name: form.name,
+        name_ru: form.name_ru || null,
+        name_en: form.name_en || null,
+        category: form.category,
+        category_ru: form.category_ru || null,
+        category_en: form.category_en || null,
+        description: form.description || null,
+        description_ru: form.description_ru || null,
+        description_en: form.description_en || null,
+        website: form.website || null,
+        phone: form.phone || null,
+        email: form.email || null,
+        logo_url: form.logo_url || null,
+        is_vip: form.is_vip,
         latitude: form.latitude !== '' ? parseFloat(form.latitude) : null,
         longitude: form.longitude !== '' ? parseFloat(form.longitude) : null,
         is_active: true,
@@ -978,19 +1011,83 @@ function BusinessesSection({ canManage }: { canManage: boolean }) {
             <DialogTitle className="font-jiang-cheng text-foreground">{editBiz ? 'Biznesni Tahrirlash' : "Yangi Biznes Qo'shish"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setBizLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', bizLangTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+              <span className="text-[10px] text-muted-foreground/60 ml-2 self-center">{bizLangTab === 'uz' ? '(asosiy)' : '(ixtiyoriy)'}</span>
+            </div>
+            {bizLangTab === 'uz' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Kompaniya Nomi *</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Kompaniya nomi" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Kategoriya *</Label>
+                  <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="IT, Qurilish..." className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Tavsif</Label>
+                  <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Qisqa tavsif" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
+            {bizLangTab === 'ru' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Название компании (RU)</Label>
+                  <Input value={form.name_ru} onChange={e => setForm(f => ({ ...f, name_ru: e.target.value }))} placeholder="Название компании" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Категория (RU)</Label>
+                  <Input value={form.category_ru} onChange={e => setForm(f => ({ ...f, category_ru: e.target.value }))} placeholder="IT, Строительство..." className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Описание (RU)</Label>
+                  <Input value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} placeholder="Краткое описание" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
+            {bizLangTab === 'en' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Company Name (EN)</Label>
+                  <Input value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} placeholder="Company name" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Category (EN)</Label>
+                  <Input value={form.category_en} onChange={e => setForm(f => ({ ...f, category_en: e.target.value }))} placeholder="IT, Construction..." className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-normal text-muted-foreground">Description (EN)</Label>
+                  <Input value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} placeholder="Short description" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                </div>
+              </>
+            )}
             {[
-              { label: 'Kompaniya Nomi *', field: 'name' as const, placeholder: 'Kompaniya nomi' },
-              { label: 'Kategoriya *', field: 'category' as const, placeholder: 'IT, Qurilish...' },
               { label: 'Veb-sayt', field: 'website' as const, placeholder: 'example.uz' },
               { label: 'Telefon', field: 'phone' as const, placeholder: '+998 71 ...' },
               { label: 'Email', field: 'email' as const, placeholder: 'info@example.uz' },
-              { label: 'Tavsif', field: 'description' as const, placeholder: 'Qisqa tavsif' },
             ].map(({ label, field, placeholder }) => (
               <div key={field} className="space-y-1.5">
                 <Label className="text-xs font-normal text-muted-foreground">{label}</Label>
-                <Input value={form[field] as string} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} className="bg-background/60 border-border/60 rounded-sm text-sm" />
+                <Input value={form[field]} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} className="bg-background/60 border-border/60 rounded-sm text-sm" />
               </div>
             ))}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">Logo havolasi (ixtiyoriy)</Label>
+              <Input value={form.logo_url} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))} placeholder="https://example.com/logo.png" className="bg-background/60 border-border/60 rounded-sm text-sm" />
+              {form.logo_url && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={form.logo_url} alt="Logo preview" className="h-12 w-12 object-contain rounded-sm border border-border/40 bg-background/40" />
+                  <button type="button" onClick={() => setForm(f => ({ ...f, logo_url: '' }))} className="text-xs text-destructive hover:underline">O&apos;chirish</button>
+                </div>
+              )}
+            </div>
             <div className="space-y-2 pt-1">
               <div className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
@@ -2266,7 +2363,12 @@ function LeadsSection({ canManage }: { canManage: boolean }) {
 type Campaign = {
   id: string;
   subject: string;
+  subject_ru?: string | null;
+  subject_en?: string | null;
   body: string;
+  body_ru?: string | null;
+  body_en?: string | null;
+  logo_url?: string | null;
   scheduled_at: string;
   status: 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled';
   target_source: string;
@@ -2302,12 +2404,16 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
 
   // Form state
   const [subject, setSubject]         = useState('');
+  const [subjectRu, setSubjectRu]     = useState('');
+  const [subjectEn, setSubjectEn]     = useState('');
   const [body, setBody]               = useState('');
+  const [bodyRu, setBodyRu]           = useState('');
+  const [bodyEn, setBodyEn]           = useState('');
+  const [campLangTab, setCampLangTab] = useState<'uz' | 'ru' | 'en'>('uz');
   const [schedDate, setSchedDate]     = useState('');
   const [schedTime, setSchedTime]     = useState('');
   const [targetSrc, setTargetSrc]     = useState('all');
   const [logoUrl, setLogoUrl]         = useState('');
-  const [logoUploading, setLogoUploading] = useState(false);
   const [saving, setSaving]           = useState(false);
 
   const load = useCallback(async () => {
@@ -2324,16 +2430,11 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
     return () => window.clearInterval(id);
   }, [load]);
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoUploading(true);
-    try {
-      const url = await uploadFile(file);
-      setLogoUrl(url);
-      toast.success('Logo yuklandi');
-    } catch { toast.error('Logoni yuklashda xatolik'); }
-    finally { setLogoUploading(false); }
+  const resetCampForm = () => {
+    setSubject(''); setSubjectRu(''); setSubjectEn('');
+    setBody(''); setBodyRu(''); setBodyEn('');
+    setSchedDate(''); setSchedTime(''); setTargetSrc('all'); setLogoUrl('');
+    setCampLangTab('uz');
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -2347,8 +2448,12 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
     try {
       await adminCreateCampaign({
         subject: subject.trim(),
+        subject_ru: subjectRu.trim() || undefined,
+        subject_en: subjectEn.trim() || undefined,
         body: body.trim(),
-        logo_url: logoUrl || undefined,
+        body_ru: bodyRu.trim() || undefined,
+        body_en: bodyEn.trim() || undefined,
+        logo_url: logoUrl.trim() || undefined,
         scheduled_at: scheduledAt,
         target_source: targetSrc,
       });
@@ -2360,7 +2465,7 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
     setSaving(false);
     toast.success("Kampaniya rejalashtirildi");
     setShowForm(false);
-    setSubject(''); setBody(''); setSchedDate(''); setSchedTime(''); setTargetSrc('all'); setLogoUrl('');
+    resetCampForm();
     load();
   };
 
@@ -2418,7 +2523,7 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
             {canManage && (
-              <Button onClick={() => setShowForm(v => !v)}
+              <Button onClick={() => { resetCampForm(); setShowForm(v => !v); }}
                 className="h-8 px-4 text-xs bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm gap-1.5">
                 <CalendarClock className="w-3.5 h-3.5" />
                 Yangi Kampaniya
@@ -2437,13 +2542,64 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
           </div>
           <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
           <form onSubmit={handleCreate} className="space-y-4">
+            <div className="flex gap-1 border-b border-border/40 pb-2">
+              {(['uz', 'ru', 'en'] as const).map((l) => (
+                <button key={l} type="button" onClick={() => setCampLangTab(l)}
+                  className={cn('px-3 py-1 text-xs uppercase rounded-sm transition-colors', campLangTab === l ? 'bg-primary text-primary-foreground' : 'border border-border/40 text-muted-foreground hover:text-primary')}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+              <span className="text-[10px] text-muted-foreground/60 ml-2 self-center">{campLangTab === 'uz' ? '(asosiy)' : '(ixtiyoriy)'}</span>
+            </div>
+            {campLangTab === 'uz' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email mavzusi *</Label>
+                  <Input value={subject} onChange={e => setSubject(e.target.value)}
+                    placeholder="masalan: Iyun oyidagi yangiliklar..." required
+                    className="h-9 text-sm bg-background/60 border-border/60 rounded-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email matni *</Label>
+                  <textarea value={body} onChange={e => setBody(e.target.value)} rows={6} required
+                    placeholder="Email mazmunini yozing..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {campLangTab === 'ru' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Тема письма (RU)</Label>
+                  <Input value={subjectRu} onChange={e => setSubjectRu(e.target.value)}
+                    placeholder="например: Новости за июнь..."
+                    className="h-9 text-sm bg-background/60 border-border/60 rounded-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Текст письма (RU)</Label>
+                  <textarea value={bodyRu} onChange={e => setBodyRu(e.target.value)} rows={6}
+                    placeholder="Введите текст письма..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
+            {campLangTab === 'en' && (
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email subject (EN)</Label>
+                  <Input value={subjectEn} onChange={e => setSubjectEn(e.target.value)}
+                    placeholder="e.g. June newsletter..."
+                    className="h-9 text-sm bg-background/60 border-border/60 rounded-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Email body (EN)</Label>
+                  <textarea value={bodyEn} onChange={e => setBodyEn(e.target.value)} rows={6}
+                    placeholder="Write email content..."
+                    className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
+                </div>
+              </>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <Label className="text-xs text-muted-foreground mb-1 block">Email mavzusi *</Label>
-                <Input value={subject} onChange={e => setSubject(e.target.value)}
-                  placeholder="masalan: Iyun oyidagi yangiliklar..." required
-                  className="h-9 text-sm bg-background/60 border-border/60 rounded-sm" />
-              </div>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Yuborish sanasi *</Label>
                 <Input type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} required
@@ -2466,21 +2622,13 @@ function CampaignsSection({ canManage }: { canManage: boolean }) {
               </div>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Email matni *</Label>
-              <textarea value={body} onChange={e => setBody(e.target.value)} rows={6} required
-                placeholder="Email mazmunini yozing..."
-                className="w-full text-sm bg-background/60 border border-border/60 rounded-sm px-3 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/40" />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Logo (ixtiyoriy)</Label>
-              <label className={cn('flex items-center gap-2 px-3 py-2 border border-dashed border-border/60 rounded-sm cursor-pointer text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors', logoUploading && 'opacity-50 pointer-events-none')}>
-                <UploadCloud className="w-4 h-4 shrink-0" />
-                {logoUploading ? 'Yuklanmoqda...' : 'Logo tanlash (JPG, PNG)'}
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
+              <Label className="text-xs text-muted-foreground mb-1 block">Logo havolasi (ixtiyoriy)</Label>
+              <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)}
+                placeholder="https://example.com/logo.png"
+                className="h-9 text-sm bg-background/60 border-border/60 rounded-sm" />
               {logoUrl && (
                 <div className="mt-2 flex items-center gap-3">
-                  <img src={logoUrl} alt="logo" className="h-12 object-contain rounded-sm border border-border/40" />
+                  <img src={logoUrl} alt="logo" className="h-12 w-12 object-contain rounded-sm border border-border/40 bg-background/40" />
                   <button type="button" onClick={() => setLogoUrl('')} className="text-xs text-destructive hover:underline">O&apos;chirish</button>
                 </div>
               )}

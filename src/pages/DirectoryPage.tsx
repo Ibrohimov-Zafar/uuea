@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useLang } from '@/contexts/LangContext';
+import { localizedField } from '@/i18n/locale';
 import { getBusinesses } from '@/api/client';
 import type { Business } from '@/types/types';
 const BusinessMap = lazy(() => import('@/components/BusinessMap'));
@@ -34,7 +35,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function DirectoryPage() {
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(ALL);
   const [activeRegion, setActiveRegion] = useState(ALL);
@@ -295,7 +296,7 @@ export default function DirectoryPage() {
           {viewMode === 'map' && (
             <div className="mb-8">
               <Suspense fallback={<Skeleton className="h-[480px] bg-muted rounded-sm" />}>
-                <BusinessMap businesses={businesses} />
+                <BusinessMap businesses={businesses} lang={lang} />
               </Suspense>
             </div>
           )}
@@ -309,23 +310,29 @@ export default function DirectoryPage() {
             </div>
           ) : viewMode === 'grid' && businesses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              {businesses.map((biz) => (
+              {businesses.map((biz) => {
+                const name = localizedField(biz.name, biz.name_ru, biz.name_en, lang);
+                const category = localizedField(biz.category, biz.category_ru, biz.category_en, lang);
+                const description = localizedField(biz.description, biz.description_ru, biz.description_en, lang);
+                return (
                 <div key={biz.id}
                   className="glass-card border-ancient rounded-sm p-5 space-y-4 hover-gold-glow relative group card-ancient flex flex-col h-full">
                   {biz.is_vip && (
                     <div className="absolute top-3 right-3 vip-badge">VIP</div>
                   )}
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/15 border border-primary/25 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-lg shrink-0">
-                      {biz.name.slice(0, 2).toUpperCase()}
+                    <div className="w-12 h-12 bg-primary/15 border border-primary/25 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-lg shrink-0 overflow-hidden">
+                      {biz.logo_url
+                        ? <img src={biz.logo_url} alt={name} className="w-full h-full object-cover" />
+                        : name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm truncate">{biz.name}</h4>
-                      <div className="text-primary text-xs mt-0.5">{biz.category}</div>
+                      <h4 className="font-jiang-cheng text-foreground font-bold text-sm truncate">{name}</h4>
+                      <div className="text-primary text-xs mt-0.5">{category}</div>
                     </div>
                   </div>
                   <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-3 flex-1">
-                    {biz.description || 'Tavsif mavjud emas'}
+                    {description || 'Tavsif mavjud emas'}
                   </p>
                   <div className="space-y-1.5 text-xs text-muted-foreground">
                     {biz.region && (
@@ -355,7 +362,7 @@ export default function DirectoryPage() {
                     </Link>
                   </Button>
                 </div>
-              ))}
+              );})}
             </div>
           ) : (
             <div className="glass-card border-ancient rounded-sm py-20 text-center space-y-3 card-ancient">

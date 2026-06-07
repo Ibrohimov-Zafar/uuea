@@ -29,3 +29,15 @@ export function formatDateLocale(iso: string, lang: Lang): string {
 export function localeTag(lang: Lang): string {
   return lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-US';
 }
+
+/** Pick localized text: preferred lang → uz fallback */
+export function localizedField(
+  uz: string | null | undefined,
+  ru: string | null | undefined,
+  en: string | null | undefined,
+  lang: Lang,
+): string {
+  if (lang === 'ru' && ru) return ru;
+  if (lang === 'en' && en) return en;
+  return uz || ru || en || '';
+}

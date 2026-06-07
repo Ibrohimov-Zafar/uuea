@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useLang } from '@/contexts/LangContext';
+import { localizedField } from '@/i18n/locale';
 import {
   createHeroLead, sendEmail,
   getPartners, getTestimonials, getSiteStats, getSiteServices,
@@ -138,18 +139,20 @@ function HeroSection() {
   return (
     <section ref={sectionRef} className="relative min-h-[95vh] flex items-center overflow-hidden bg-black">
       {/* ── Hero background with parallax ── */}
-      <img
-        src="/h.png"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover object-center brightness-110"
-        style={{ transform: `translateY(${videoParallax}px) scale(1.08)`, willChange: 'transform' }}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <img
+          src="/h.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-105 blur-[3px] scale-[1.06]"
+          style={{ transform: `translateY(${videoParallax}px) scale(1.08)`, willChange: 'transform' }}
+        />
+      </div>
 
-      {/* Overlays — light tint so the photo stays visible; text remains white */}
-      <div className="absolute inset-0 bg-black/15" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-black/5" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+      {/* Overlays — soft tint + blur support for readable text */}
+      <div className="absolute inset-0 bg-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/15" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/20" />
 
       {/* Runic circle overlay */}
       <div className="absolute top-16 right-10 w-[420px] h-[420px] z-0 pointer-events-none hidden xl:block">
@@ -184,7 +187,7 @@ function HeroSection() {
 
           {/* Headline — fade delay 100ms */}
           <h1
-            className="font-jiang-cheng text-4xl md:text-6xl xl:text-7xl font-bold text-white leading-tight text-balance mb-6 transition-all duration-700 drop-shadow-md"
+            className="font-jiang-cheng text-4xl md:text-6xl xl:text-7xl font-bold text-white leading-tight text-balance mb-6 transition-all duration-700 drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)]"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(32px)', transitionDelay: '100ms' }}
           >
             {t('heroTitle').split(' ').slice(0, 2).join(' ')}{' '}
@@ -196,7 +199,7 @@ function HeroSection() {
 
           {/* Sub — fade delay 200ms */}
           <p
-            className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl text-pretty mx-auto mb-8 transition-all duration-700 drop-shadow-sm"
+            className="text-white/95 text-base md:text-xl leading-relaxed max-w-2xl text-pretty mx-auto mb-8 transition-all duration-700 drop-shadow-[0_1px_8px_rgba(0,0,0,0.55)]"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(28px)', transitionDelay: '200ms' }}
           >
             {t('heroSub')}
@@ -540,12 +543,14 @@ function EventsSection({ events }: { events: Event[] }) {
 
 // ---- Directory Preview ----
 function DirectoryPreview({ businesses }: { businesses: Business[] }) {
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const [query, setQuery] = useState('');
-  const filtered = businesses.filter(b =>
-    b.name.toLowerCase().includes(query.toLowerCase()) ||
-    b.category.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 4);
+  const filtered = businesses.filter(b => {
+    const name = localizedField(b.name, b.name_ru, b.name_en, lang);
+    const category = localizedField(b.category, b.category_ru, b.category_en, lang);
+    return name.toLowerCase().includes(query.toLowerCase()) ||
+      category.toLowerCase().includes(query.toLowerCase());
+  }).slice(0, 4);
 
   return (
     <section className="py-20 bg-navy-light border-y border-border/50">
@@ -565,24 +570,28 @@ function DirectoryPreview({ businesses }: { businesses: Business[] }) {
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {filtered.map((biz) => (
+          {filtered.map((biz) => {
+            const name = localizedField(biz.name, biz.name_ru, biz.name_en, lang);
+            const category = localizedField(biz.category, biz.category_ru, biz.category_en, lang);
+            const description = localizedField(biz.description, biz.description_ru, biz.description_en, lang);
+            return (
             <div key={biz.id} className="glass-card border-ancient rounded-sm p-5 space-y-3 hover-gold-glow relative group">
               {biz.is_vip && (
                 <div className="absolute top-3 right-3 vip-badge">VIP</div>
               )}
               <div className="w-12 h-12 bg-primary/15 border border-primary/20 rounded-sm flex items-center justify-center font-jiang-cheng text-primary font-bold text-lg overflow-hidden">
                 {biz.logo_url
-                  ? <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
-                  : biz.name.slice(0, 2).toUpperCase()
+                  ? <img src={biz.logo_url} alt={name} className="w-full h-full object-cover" />
+                  : name.slice(0, 2).toUpperCase()
                 }
               </div>
               <div>
-                <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance">{biz.name}</h4>
-                <div className="text-primary text-xs mt-0.5">{biz.category}</div>
+                <h4 className="font-jiang-cheng text-foreground font-bold text-sm text-balance">{name}</h4>
+                <div className="text-primary text-xs mt-0.5">{category}</div>
               </div>
-              <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-2">{biz.description}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed text-pretty line-clamp-2">{description}</p>
             </div>
-          ))}
+          );})}
         </div>
         {filtered.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">{t('homeCatalogEmpty')}</div>

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Business } from '@/types/types';
+import type { Lang } from '@/i18n/types';
+import { localizedField } from '@/i18n/locale';
 
 // Uzbekistan city coordinates fallback
 const CITY_COORDS: Record<string, [number, number]> = {
@@ -22,10 +24,11 @@ const DEFAULT_CENTER: [number, number] = [41.2995, 69.2401];
 
 interface Props {
   businesses: Business[];
+  lang?: Lang;
   onSelect?: (b: Business) => void;
 }
 
-export default function BusinessMap({ businesses, onSelect }: Props) {
+export default function BusinessMap({ businesses, lang = 'uz', onSelect }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
@@ -116,6 +119,10 @@ export default function BusinessMap({ businesses, onSelect }: Props) {
 
         if (!lat || !lng) return;
 
+        const name = localizedField(biz.name, biz.name_ru, biz.name_en, lang);
+        const category = localizedField(biz.category, biz.category_ru, biz.category_en, lang);
+        const description = localizedField(biz.description, biz.description_ru, biz.description_en, lang);
+
         const marker = L.marker([lat, lng], { icon: biz.is_vip ? vipIcon : goldIcon });
 
         const popup = L.popup({
@@ -124,17 +131,17 @@ export default function BusinessMap({ businesses, onSelect }: Props) {
         }).setContent(`
           <div style="background:#0d1f33;border:1px solid rgba(212,175,55,0.3);border-radius:3px;padding:12px;min-width:180px;font-family:sans-serif;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <div style="width:36px;height:36px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:3px;display:flex;align-items:center;justify-content:center;color:#d4af37;font-weight:700;font-size:13px;flex-shrink:0;">
-                ${biz.name.slice(0, 2).toUpperCase()}
+              <div style="width:36px;height:36px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:3px;display:flex;align-items:center;justify-content:center;color:#d4af37;font-weight:700;font-size:13px;flex-shrink:0;overflow:hidden;">
+                ${biz.logo_url ? `<img src="${biz.logo_url}" alt="" style="width:100%;height:100%;object-fit:cover;" />` : name.slice(0, 2).toUpperCase()}
               </div>
               <div style="min-width:0;">
-                <p style="margin:0;color:#e8e4d8;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${biz.name}</p>
-                <p style="margin:0;color:#d4af37;font-size:11px;">${biz.category}</p>
+                <p style="margin:0;color:#e8e4d8;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</p>
+                <p style="margin:0;color:#d4af37;font-size:11px;">${category}</p>
               </div>
             </div>
             ${biz.region ? `<p style="margin:0 0 4px;color:#8a8a9a;font-size:11px;">📍 ${biz.region}</p>` : ''}
             ${biz.phone ? `<p style="margin:0 0 4px;color:#8a8a9a;font-size:11px;">📞 ${biz.phone}</p>` : ''}
-            ${biz.description ? `<p style="margin:6px 0 0;color:#8a8a9a;font-size:11px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${biz.description}</p>` : ''}
+            ${description ? `<p style="margin:6px 0 0;color:#8a8a9a;font-size:11px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${description}</p>` : ''}
             ${biz.is_vip ? '<span style="display:inline-block;margin-top:6px;background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.4);color:#d4af37;font-size:9px;padding:2px 8px;letter-spacing:1px;">VIP</span>' : ''}
           </div>
         `);

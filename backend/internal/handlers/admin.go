@@ -127,8 +127,11 @@ func (a *API) AdminUpsertBusiness(w http.ResponseWriter, r *http.Request) {
 		isActive = true
 	}
 	if id != "" {
-		_, err := a.DB.Exec(`UPDATE businesses SET name=?, category=?, description=?, website=?, phone=?, email=?, address=?, logo_url=?, region=?, is_vip=?, is_active=?, updated_at=? WHERE id=?`,
-			str(body["name"]), str(body["category"]), str(body["description"]), str(body["website"]), str(body["phone"]),
+		_, err := a.DB.Exec(`UPDATE businesses SET name=?, name_ru=?, name_en=?, category=?, category_ru=?, category_en=?, description=?, description_ru=?, description_en=?, website=?, phone=?, email=?, address=?, logo_url=?, region=?, is_vip=?, is_active=?, updated_at=? WHERE id=?`,
+			str(body["name"]), nullIfEmpty(str(body["name_ru"])), nullIfEmpty(str(body["name_en"])),
+			str(body["category"]), nullIfEmpty(str(body["category_ru"])), nullIfEmpty(str(body["category_en"])),
+			str(body["description"]), nullIfEmpty(str(body["description_ru"])), nullIfEmpty(str(body["description_en"])),
+			str(body["website"]), str(body["phone"]),
 			str(body["email"]), str(body["address"]), str(body["logo_url"]), str(body["region"]), boolInt(isVIP), boolInt(isActive), now, id)
 		if err != nil {
 			log.Printf("[AdminUpsertBusiness] UPDATE error: %v | id: %s", err, id)
@@ -140,9 +143,11 @@ func (a *API) AdminUpsertBusiness(w http.ResponseWriter, r *http.Request) {
 	}
 	id = uuid.NewString()
 	ownerID := nullIfEmpty(str(body["owner_id"]))
-	_, err := a.DB.Exec(`INSERT INTO businesses (id, owner_id, name, category, description, website, phone, email, address, logo_url, region, is_vip, is_active, created_at, updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		id, ownerID, str(body["name"]), str(body["category"]), str(body["description"]),
+	_, err := a.DB.Exec(`INSERT INTO businesses (id, owner_id, name, name_ru, name_en, category, category_ru, category_en, description, description_ru, description_en, website, phone, email, address, logo_url, region, is_vip, is_active, created_at, updated_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		id, ownerID, str(body["name"]), nullIfEmpty(str(body["name_ru"])), nullIfEmpty(str(body["name_en"])),
+		str(body["category"]), nullIfEmpty(str(body["category_ru"])), nullIfEmpty(str(body["category_en"])),
+		str(body["description"]), nullIfEmpty(str(body["description_ru"])), nullIfEmpty(str(body["description_en"])),
 		str(body["website"]), str(body["phone"]), str(body["email"]), str(body["address"]), str(body["logo_url"]), str(body["region"]),
 		boolInt(isVIP), boolInt(isActive), now, now)
 	if err != nil {
@@ -386,8 +391,10 @@ func (a *API) AdminCreateCampaign(w http.ResponseWriter, r *http.Request) {
 	}
 	id := uuid.NewString()
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err := a.DB.Exec(`INSERT INTO email_campaigns (id, subject, body, logo_url, scheduled_at, status, target_source, created_at) VALUES (?,?,?,?,?,?,?,?)`,
-		id, str(body["subject"]), str(body["body"]), nullIfEmpty(str(body["logo_url"])), str(body["scheduled_at"]), "scheduled", str(body["target_source"]), now)
+	_, err := a.DB.Exec(`INSERT INTO email_campaigns (id, subject, subject_ru, subject_en, body, body_ru, body_en, logo_url, scheduled_at, status, target_source, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+		id, str(body["subject"]), nullIfEmpty(str(body["subject_ru"])), nullIfEmpty(str(body["subject_en"])),
+		str(body["body"]), nullIfEmpty(str(body["body_ru"])), nullIfEmpty(str(body["body_en"])),
+		nullIfEmpty(str(body["logo_url"])), str(body["scheduled_at"]), "scheduled", str(body["target_source"]), now)
 	if err != nil {
 		errJSON(w, http.StatusInternalServerError, "server_error")
 		return
